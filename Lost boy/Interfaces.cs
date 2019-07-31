@@ -7,9 +7,9 @@ using System.Drawing;
 
 namespace Lost_boy
 {
-    delegate Action TresholdPass();
-    delegate Action OnDeath();
-
+    public delegate Action TresholdPass();
+    public delegate Action OnDeath();
+    public delegate void Modify(ref int i);
     public enum Direction : int
     {
         Up = -1,
@@ -19,7 +19,17 @@ namespace Lost_boy
     {
         public const int HEIGHT = 600;
         public const int WIDTH = 1000;
+
+        public const int PLAYER_HEIGHT = 50;
+        public const int PLAYER_WIDTH = 50;
+        public const int PLAYER_HEALTH = 1000;
+
+        public const int ENEMY_HEIGHT = 30;
+        public const int ENEMY_WIDTH = 30;
+        public const int ENEMY_HEALTH = 300;
+
         public const int TICK_INTERVAL = 3000; //milis
+
         public const int BASIC_WEAPON_RELOAD_TIME = 500;
         public const int BASIC_LASER_DMG = 10;
         public const int BASIC_LASER_SPEED = 10;
@@ -27,7 +37,7 @@ namespace Lost_boy
         public const int BASIC_LASER_BURN_CHANCE = 20;
     }
 
-    interface IMover
+    public interface IMover
     {
         Vector Position
         {
@@ -53,16 +63,15 @@ namespace Lost_boy
         void Draw(Graphics g, Pen p);
     }
 
-    interface IEffect
+    public interface IEffect
     {
-        public static implicit operator Action<IShip>(IEffect e);
         Action<IShip> WrappedAction
         {
             get;
         }
     }
 
-    interface IProjectile : IMover
+    public interface IProjectile : IMover
     {
         IProjectile Clone();
         void AppendEffect(Action<IShip> e);
@@ -73,19 +82,25 @@ namespace Lost_boy
         void AffectShip(IShip ship);
     }
 
-    interface IWeapon
+    public interface IWeapon
     {
-        IProjectile GetProjectile();
+        IProjectile GetProjectile(Vector launchPos);
+        void SetAmmo(IProjectile p);
         bool IsLoaded
         {
             get;
         }
-        void AppendOnHit(Action<IShip> e);
+        void AppendOnShot(Action<IProjectile> e);
     }
 
-    interface IShip : IMover
+    public interface IShip : IMover
     {
         IWeapon Weapon
+        {
+            get;
+            set;
+        }
+        IProjectile Ammo
         {
             get;
             set;

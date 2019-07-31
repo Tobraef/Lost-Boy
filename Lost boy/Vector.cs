@@ -4,6 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
 namespace Lost_boy
 {
     public struct Vector
@@ -24,12 +30,6 @@ namespace Lost_boy
         {
             X = x;
             Y = y;
-        }
-
-        public Vector()
-        {
-            X = 0;
-            Y = 0;
         }
 
         public static Vector operator +(Vector v1, Vector v2)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Threading;
 
 namespace Lost_boy
@@ -9,13 +10,11 @@ namespace Lost_boy
     public class BasicWeapon : IWeapon
     {
         private int reloadTime;
-        private Vector launchPosition;
-        private Direction shootingDirection;
-        private event Action<IShip> onHits;
+        private event Action<IProjectile> onShot;
         private IProjectile ammoType;
-        public void AppendOnHit(Action<IShip> onHit)
+        public void AppendOnShot(Action<IProjectile> onShot)
         {
-            onHits += onHit;
+            this.onShot += onShot;
         }
 
         public bool IsLoaded
@@ -24,10 +23,16 @@ namespace Lost_boy
             private set;
         }
 
-        public IProjectile GetProjectile()
+        public void SetAmmo(IProjectile ammo)
         {
+            this.ammoType = ammo;
+        }
+
+        public IProjectile GetProjectile(Vector launchPosition)
+        {
+            ammoType.Position = launchPosition;
             IProjectile bullet = ammoType.Clone();
-            bullet.AppendEffect(onHits);
+            onShot(bullet);
             Reload();
             return bullet;
         }
@@ -42,16 +47,20 @@ namespace Lost_boy
             });
         }
 
-        public void UpdatePosition(int dx)
+        public BasicWeapon(IProjectile ammo)
         {
-            launchPosition.X += dx;
+            this.SetAmmo(ammo);
+            this.IsLoaded = true;
+            this.reloadTime = VALUES.BASIC_WEAPON_RELOAD_TIME;
         }
 
-        public BasicWeapon(IProjectile ammo, Direction dir, Vector position)
+        public BasicWeapon(IProjectile ammo, List<Action<IProjectile>> onHits)
         {
-            this.shootingDirection = dir;
-            this.launchPosition = position;
-            this.ammoType = ammo;
+            foreach(var f in onHits)
+            {
+                this.onShot += f;
+            }
+            this.SetAmmo(ammo);
             this.IsLoaded = true;
             this.reloadTime = VALUES.BASIC_WEAPON_RELOAD_TIME;
         }

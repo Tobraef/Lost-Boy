@@ -3,10 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Drawing;
 namespace Lost_boy
 {
-    public class Mover : IMover
+    public abstract class Mover : IMover
     {
 
         public Vector Position
@@ -39,8 +45,11 @@ namespace Lost_boy
             Speed += Acceleration;
         }
 
-        public Mover(Vector pos, Vector speed, Vector acc)
+        public abstract void Draw(Graphics g, Pen p);
+
+        public Mover(Vector pos, Vector speed, Vector acc, Vector size)
         {
+            Size = size;
             Position = pos;
             Speed = speed;
             Acceleration = acc;

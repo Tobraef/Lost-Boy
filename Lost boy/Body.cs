@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lost_boy
+namespace FastTest
 {
-    class Program
+    class Body
     {
-        static void Main(string[] args)
-        {
-        }
     }
 }

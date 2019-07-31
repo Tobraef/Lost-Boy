@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Threading;
 
 namespace Lost_boy
@@ -11,7 +12,6 @@ namespace Lost_boy
         public Action<IShip> WrappedAction
         {
             get;
-            private set;
         }
 
         public static implicit operator Action<IShip>(OverTimeEffect e)
@@ -44,17 +44,17 @@ namespace Lost_boy
         public OverTimeEffect(Action<IShip> action, int ticks)
         {
             WrappedAction = ship =>
+            {
+                Thread th = new Thread(() =>
                 {
-                    Thread th = new Thread(() =>
+                    while (ticks > 0)
                     {
-                        while (ticks > 0)
-                        {
-                            action(ship);
-                            ticks--;
-                            Thread.Sleep(VALUES.TICK_INTERVAL);
-                        }
-                    });
-                };
+                        action(ship);
+                        ticks--;
+                        Thread.Sleep(VALUES.TICK_INTERVAL);
+                    }
+                });
+            };
             Ticks = ticks;
         }
     }
@@ -78,9 +78,9 @@ namespace Lost_boy
         public DamageEffect(int value)
         {
             WrappedAction = ship =>
-                {
-                    ship.TakeDamage(value);
-                };
+            {
+                ship.TakeDamage(value);
+            };
         }
 
         public static implicit operator Action<IShip>(DamageEffect e)
@@ -89,5 +89,5 @@ namespace Lost_boy
         }
     }
 
-    
+
 }
