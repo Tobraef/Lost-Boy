@@ -7,8 +7,6 @@ using System.Drawing;
 
 namespace Lost_boy
 {
-    public delegate Action TresholdPass();
-    public delegate Action OnDeath();
     public delegate void Modify(ref int i);
     public enum Direction : int
     {
@@ -75,7 +73,7 @@ namespace Lost_boy
     {
         IProjectile Clone();
         void AppendEffect(Action<IShip> e);
-        TresholdPass TresholdPass
+        Action TresholdPass
         {
             set;
         }

@@ -18,6 +18,13 @@ namespace Lost_boy
             g.DrawRectangle(p, drawable);
         }
 
+        public override void Move()
+        {
+            base.Move();
+            drawable.X = this.Position.X;
+            drawable.Y = this.Position.Y;
+        }
+
         public override IProjectile Clone()
         {
             return new BasicLaser(this.Position, this.direction);

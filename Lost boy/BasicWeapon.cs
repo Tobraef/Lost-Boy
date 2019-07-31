@@ -32,7 +32,9 @@ namespace Lost_boy
         {
             ammoType.Position = launchPosition;
             IProjectile bullet = ammoType.Clone();
-            onShot(bullet);
+            // TODO remove when onShot always holding an event
+            if (onShot != null)
+                onShot(bullet);
             Reload();
             return bullet;
         }

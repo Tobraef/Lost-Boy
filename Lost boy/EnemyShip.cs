@@ -12,6 +12,17 @@ namespace Lost_boy
         private event Modify onDamageTaken;
         private Rectangle rectangle;
         private Color color = Color.Red;
+        
+        public Action<EnemyShip> OnDeath
+        {
+            private get;
+            set;
+        }
+        public Random ShootingChance
+        {
+            private get;
+            set;
+        }
 
         public IWeapon Weapon
         {
@@ -48,11 +59,14 @@ namespace Lost_boy
         {
             onDamageTaken(ref val);
             this.Health -= val;
+            if (Health <= 0)
+                OnDeath(this);
         }
 
         public void Shoot(Action<IProjectile> bulletAdder)
         {
-            bulletAdder(Weapon.GetProjectile(ShootingPosition));
+            if (ShootingChance.Next(100) > 90) 
+                bulletAdder(Weapon.GetProjectile(ShootingPosition));
         }
 
         public override void Draw(Graphics g, Pen p)

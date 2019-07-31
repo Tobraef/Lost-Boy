@@ -1,4 +1,4 @@
-﻿namespace FastTest
+﻿namespace Lost_boy
 {
     partial class Form1
     {

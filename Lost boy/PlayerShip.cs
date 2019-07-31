@@ -11,7 +11,7 @@ namespace Lost_boy
     {
         private event Modify onDamageTaken;
         private Rectangle rectangle;
-        private Color color = Color.White;
+        private Color color = Color.Green;
 
         public IWeapon Weapon
         {
@@ -72,6 +72,7 @@ namespace Lost_boy
         public void Move(int dx)
         {
             Position = new Vector(Position.X + dx, Position.Y);
+            rectangle.X = Position.X;
         }
 
         public bool IsHit(IProjectile projectile)
@@ -92,6 +93,7 @@ namespace Lost_boy
             this.Health = VALUES.PLAYER_HEALTH;
             this.Defence = 0;
             this.onDamageTaken += (ref int val) => val -= Defence;
+            this.onDamageTaken += (ref int val) => { if (Health <= 0) System.Windows.Forms.Application.Exit(); };
             this.Ammo = new BasicLaser(ShootingPosition, Direction.Up);
             this.Weapon = new BasicWeapon(Ammo);
             this.rectangle = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);

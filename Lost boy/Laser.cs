@@ -3,12 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
 
 namespace Lost_boy
@@ -30,7 +24,7 @@ namespace Lost_boy
             dmgModifiers += modifier;
         }
 
-        public TresholdPass TresholdPass
+        public Action TresholdPass
         {
             private get;
             set;
@@ -40,7 +34,8 @@ namespace Lost_boy
         {
             shipEffects(ship);
             int modifiedDmg = dmg;
-            dmgModifiers(ref modifiedDmg);
+            if (dmgModifiers != null)
+                dmgModifiers(ref modifiedDmg);
             ship.TakeDamage(modifiedDmg);
         }
 

@@ -38,6 +38,7 @@ namespace Lost_boy
                         Thread.Sleep(VALUES.TICK_INTERVAL);
                     }
                 });
+                th.Join();
             };
         }
 
@@ -54,6 +55,7 @@ namespace Lost_boy
                         Thread.Sleep(VALUES.TICK_INTERVAL);
                     }
                 });
+                th.Join();
             };
             Ticks = ticks;
         }
