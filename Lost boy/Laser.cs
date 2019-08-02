@@ -37,6 +37,7 @@ namespace Lost_boy
             if (dmgModifiers != null)
                 dmgModifiers(ref modifiedDmg);
             ship.TakeDamage(modifiedDmg);
+            TresholdPass();
         }
 
         public override void Move()

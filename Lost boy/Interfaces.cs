@@ -117,4 +117,10 @@ namespace Lost_boy
         void TakeDamage(int val);
         bool IsHit(IProjectile projectile);
     }
+
+    public interface IMovementStrategy
+    {
+        void ApplyStrategy(IShip ship);
+        void StopStrategy(IShip ship);
+    }
 }

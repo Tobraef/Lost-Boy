@@ -17,16 +17,17 @@ namespace Lost_boy
         private List<EnemyShip> toRemoveEnemies = new List<EnemyShip>();
         private List<IProjectile> enemyProjectiles = new List<IProjectile>();
         private List<IProjectile> playersProjectiles = new List<IProjectile>();
+        private List<IProjectile> toRemoveBullets = new List<IProjectile>();
         private Timer timer;
 
         private void PlayerBulletAdder(IProjectile bullet)
         {
-            bullet.TresholdPass = () => playersProjectiles.Remove(bullet);
+            bullet.TresholdPass = () => toRemoveBullets.Add(bullet);
             playersProjectiles.Add(bullet);
         }
         private void EnemyBulletAdder(IProjectile bullet)
         {
-            bullet.TresholdPass = () => playersProjectiles.Remove(bullet);
+            bullet.TresholdPass = () => toRemoveBullets.Add(bullet);
             enemyProjectiles.Add(bullet);
         }
         void KeyHandle(object sender, KeyEventArgs args)
@@ -54,6 +55,7 @@ namespace Lost_boy
             toRemoveEnemies.Clear();
             foreach (var enemy in enemies)
             {
+                enemy.Move();
                 enemy.Shoot(EnemyBulletAdder);
                 foreach (var bullet in playersProjectiles)
                 {
@@ -73,6 +75,13 @@ namespace Lost_boy
                     bullet.AffectShip(player);
                 }
             }
+
+            foreach (var bullet in toRemoveBullets)
+            {
+                playersProjectiles.Remove(bullet);
+                enemyProjectiles.Remove(bullet);
+            }
+            toRemoveBullets.Clear();
             this.Refresh();
         }
 

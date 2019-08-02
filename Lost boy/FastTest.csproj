@@ -87,6 +87,7 @@
     </Compile>
     <Compile Include="Interfaces.cs" />
     <Compile Include="Laser.cs" />
+    <Compile Include="MovementStrategy.cs" />
     <Compile Include="Mover.cs" />
     <Compile Include="PlayerShip.cs" />
     <Compile Include="Program.cs" />

@@ -12,6 +12,7 @@ namespace Lost_boy
         private event Modify onDamageTaken;
         private Rectangle rectangle;
         private Color color = Color.Red;
+        private IMovementStrategy strategy = null;
         
         public Action<EnemyShip> OnDeath
         {
