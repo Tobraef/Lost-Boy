@@ -11,6 +11,21 @@ namespace Lost_boy
     {
         private Rectangle drawable;
         private Color color = Color.Red;
+        private Vector size;
+
+        public override Vector Size
+        {
+            get
+            {
+                return size;
+            }
+            set
+            {
+                drawable.Width = value.X;
+                drawable.Height = value.Y;
+                size = value;
+            }
+        }
 
         public override void Draw(Graphics g, Pen p)
         {
@@ -25,7 +40,7 @@ namespace Lost_boy
             drawable.Y = this.Position.Y;
         }
 
-        public override IProjectile Clone()
+        public override IBullet Clone()
         {
             return new BasicLaser(this.Position, this.direction);
         }
@@ -33,6 +48,7 @@ namespace Lost_boy
         public BasicLaser(Vector pos, Direction dir) :
             base(pos, new Vector(5, 10), dir, VALUES.BASIC_LASER_SPEED, VALUES.BASIC_LASER_DMG)
         {
+            this.size = Size;
             this.direction = dir;
             var function = OverTimeEffect.Create(DamageEffect.Create(VALUES.BASIC_LASER_BURN_DMG), 3);
             base.AppendEffect(ship =>
@@ -42,7 +58,7 @@ namespace Lost_boy
                     function(ship);
                 }
             });
-            drawable = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
+            drawable = new Rectangle(Position.X, Position.Y, size.X, size.Y);
         }
     }
 }

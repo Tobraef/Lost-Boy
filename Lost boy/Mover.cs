@@ -27,7 +27,7 @@ namespace Lost_boy
             set;
         }
 
-        public Vector Size
+        public virtual Vector Size
         {
             get;
             set;

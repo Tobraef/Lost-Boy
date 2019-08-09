@@ -7,7 +7,7 @@ using System.Drawing;
 
 namespace Lost_boy
 {
-    public abstract class Laser : Mover, IProjectile
+    public abstract class Laser : Mover, IBullet
     {
         private event Action<IShip> shipEffects;
         private event Modify dmgModifiers;
@@ -34,20 +34,20 @@ namespace Lost_boy
         {
             shipEffects(ship);
             int modifiedDmg = dmg;
+            Console.WriteLine("Modify is null : {0}", dmgModifiers == null);
             if (dmgModifiers != null)
                 dmgModifiers(ref modifiedDmg);
             ship.TakeDamage(modifiedDmg);
-            TresholdPass();
         }
-
+        
         public override void Move()
         {
             base.Move();
-            if (Position.Y > VALUES.HEIGHT)
+            if (Position.Y > VALUES.HEIGHT || Position.Y < 0)
                 TresholdPass();
         }
 
-        public abstract IProjectile Clone();
+        public abstract IBullet Clone();
 
         public Laser(Vector position, Vector size, Direction dir, int speed, int damage) :
             base(position, new Vector(0, (int)dir * speed), new Vector(0, 0), size)

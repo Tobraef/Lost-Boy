@@ -25,23 +25,38 @@ namespace Lost_boy
             bullet.TresholdPass = () => toRemoveBullets.Add(bullet);
             playersProjectiles.Add(bullet);
         }
+
         private void EnemyBulletAdder(IProjectile bullet)
         {
             bullet.TresholdPass = () => toRemoveBullets.Add(bullet);
             enemyProjectiles.Add(bullet);
         }
-        void KeyHandle(object sender, KeyEventArgs args)
+
+        private void KeyHandle(object sender, KeyEventArgs args)
         {
-            switch(args.KeyCode)
+            switch (args.KeyCode)
             {
                 case Keys.A:
-                    player.Move(-5);
+                    player.Speed = new Vector(-VALUES.PLAYER_SPEED, 0);
                     break;
                 case Keys.D:
-                    player.Move(5);
+                    player.Speed = new Vector(VALUES.PLAYER_SPEED, 0);
                     break;
                 case Keys.S:
                     player.Shoot(PlayerBulletAdder);
+                    break;
+            }
+        }
+
+        private void KeyUps(object sender, KeyEventArgs args)
+        {
+            switch (args.KeyCode)
+            {
+                case Keys.A:
+                    player.Speed = new Vector(0, 0);
+                    break;
+                case Keys.D:
+                    player.Speed = new Vector(0, 0);
                     break;
             }
         }
@@ -63,16 +78,19 @@ namespace Lost_boy
                     if (enemy.IsHit(bullet))
                     {
                         bullet.AffectShip(enemy);
+                        toRemoveBullets.Add(bullet);
                     }
                 }
             }
 
+            player.Move();
             foreach (var bullet in enemyProjectiles)
             {
                 bullet.Move();
                 if (player.IsHit(bullet))
                 {
                     bullet.AffectShip(player);
+                    toRemoveBullets.Add(bullet);
                 }
             }
 
@@ -97,12 +115,13 @@ namespace Lost_boy
             foreach (var b in enemies)
                 b.Draw(g, p);
             player.Draw(g, p);
-    
+
         }
 
         public Form1()
         {
             InitializeComponent();
+            this.BackColor = Color.Black;
             this.Size = new Size(VALUES.WIDTH, VALUES.HEIGHT + 200);
             player = new PlayerShip();
             enemies = new List<EnemyShip>
@@ -111,14 +130,28 @@ namespace Lost_boy
                 new EnemyShip(new Vector(150,50), new Vector()),
                 new EnemyShip(new Vector(250,50), new Vector()),
                 new EnemyShip(new Vector(350,50), new Vector()),
+                new EnemyShip(new Vector(450,50), new Vector()),
+                new EnemyShip(new Vector(550,50), new Vector()),
+                new EnemyShip(new Vector(650,50), new Vector()),
+                new EnemyShip(new Vector(750,50), new Vector()),
             };
             int i = 1;
             foreach (var e in enemies)
             {
                 e.ShootingChance = new Random(i++);
-                e.OnDeath = (EnemyShip ship) => toRemoveEnemies.Add(ship);
+                e.OnDeath += (EnemyShip ship) => toRemoveEnemies.Add(ship);
+                e.OnDeath += (EnemyShip ship) =>
+                    {
+                        var b = new LaserDamageBonus(ship.Position);
+                        b.TresholdPass = () =>
+                            {
+                                this.toRemoveBullets.Add(b);
+                            };
+                        enemyProjectiles.Add(b);
+                    };
             }
             this.KeyDown += KeyHandle;
+            this.KeyUp += KeyUps;
             this.Paint += PaintGame;
             timer = new Timer();
             timer.Interval = 100;

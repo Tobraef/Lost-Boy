@@ -8,32 +8,45 @@ namespace Lost_boy
 {
     public class NormalMovementStrategy : IMovementStrategy
     {
-        private Thread thread;
-        private void Strategy(IShip ship)
+        private const int speed = 15;
+        Func<Mover, bool> currentMovement;
+        private void Strategy(Mover ship)
         {
-            Func<IShip, bool> currentMovement = MoveLeft;
-            
+            if (!currentMovement(ship))
+                return;
+            if (currentMovement == MoveLeft)
+                currentMovement = MoveRight;
+            else
+                currentMovement = MoveLeft;
         }
 
-        private bool MoveLeft(IShip ship)
+        private bool MoveLeft(Mover ship)
         {
-            ship.Speed = new Vector(-5, 0);
-            return ship.Position.X <= 10;
+            if (ship.Speed.X != -speed)
+                ship.Speed = new Vector(-speed, 0);
+            return ship.Position.X <= speed;
         }
 
-        private bool MoveRight(IShip ship)
+        private bool MoveRight(Mover ship)
         {
-            ship.Speed = new Vector(5, 0);
+            if (ship.Speed.Y != speed)
+                ship.Speed = new Vector(speed, 0);
             return ship.Position.X + ship.Size.X >= VALUES.WIDTH;
         }
-        public void ApplyStrategy(IShip ship)
-        {
 
+        public void ApplyStrategy(Mover ship)
+        {
+            Strategy(ship);
         }
 
-        public void StopStrategy(IShip ship)
+        public void StopStrategy(Mover ship)
         {
-            thread.Abort();
+            ship.Speed = new Vector();
+        }
+
+        public NormalMovementStrategy()
+        {
+            this.currentMovement = MoveLeft;
         }
     }
 }

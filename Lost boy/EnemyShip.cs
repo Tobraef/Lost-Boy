@@ -13,12 +13,10 @@ namespace Lost_boy
         private Rectangle rectangle;
         private Color color = Color.Red;
         private IMovementStrategy strategy = null;
-        
-        public Action<EnemyShip> OnDeath
-        {
-            private get;
-            set;
-        }
+        private HPBar hpBar;
+
+        public event Action<EnemyShip> OnDeath;
+
         public Random ShootingChance
         {
             private get;
@@ -26,12 +24,6 @@ namespace Lost_boy
         }
 
         public IWeapon Weapon
-        {
-            get;
-            set;
-        }
-
-        public IProjectile Ammo
         {
             get;
             set;
@@ -60,24 +52,29 @@ namespace Lost_boy
         {
             onDamageTaken(ref val);
             this.Health -= val;
+            this.hpBar.HpChanged(Health);
             if (Health <= 0)
                 OnDeath(this);
         }
 
         public void Shoot(Action<IProjectile> bulletAdder)
         {
-            if (ShootingChance.Next(100) > 90) 
-                bulletAdder(Weapon.GetProjectile(ShootingPosition));
+            if (ShootingChance.Next(100) > 90)
+                bulletAdder(Weapon.GetBullet(ShootingPosition));
         }
 
         public override void Draw(Graphics g, Pen p)
         {
             p.Color = color;
             g.DrawRectangle(p, rectangle);
+            hpBar.Draw(g, p);
         }
 
         public override void Move()
         {
+            if (strategy != null)
+                this.strategy.ApplyStrategy(this);
+            this.hpBar.UpdatePosition(Speed.X);
             base.Move();
             rectangle.X = Position.X;
             rectangle.Y = Position.Y;
@@ -86,10 +83,9 @@ namespace Lost_boy
         public bool IsHit(IProjectile projectile)
         {
             return
-                projectile.Position.Y + projectile.Size.Y > this.Position.Y &&
-                projectile.Position.Y < this.Position.Y + this.Size.Y &&
-                projectile.Position.X + projectile.Size.X > this.Position.X &&
-                projectile.Position.X < this.Position.X + this.Size.X;
+                this.Position.Y + this.Size.Y > projectile.Position.Y &&
+                this.Position.X + this.Size.X  > projectile.Position.X &&
+                this.Position.X < projectile.Size.X + projectile.Position.X;
         }
 
         public EnemyShip(Vector position, Vector speed) :
@@ -101,9 +97,11 @@ namespace Lost_boy
             this.Health = VALUES.ENEMY_HEALTH;
             this.Defence = 0;
             this.onDamageTaken += (ref int val) => val -= Defence;
-            this.Ammo = new BasicLaser(ShootingPosition, Direction.Down);
-            this.Weapon = new BasicWeapon(Ammo);
+            IBullet ammo = new BasicLaser(ShootingPosition, Direction.Down);
+            this.Weapon = new BasicWeapon(ammo);
             this.rectangle = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
+            this.strategy = new NormalMovementStrategy();
+            this.hpBar = new HPBar(this);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Lost_boy
             set;
         }
 
-        public Vector(int x, int y)
+        public Vector(int x, int y) : this()
         {
             X = x;
             Y = y;

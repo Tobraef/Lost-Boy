@@ -12,6 +12,7 @@ namespace Lost_boy
         public Action<IShip> WrappedAction
         {
             get;
+            private set;
         }
 
         public static implicit operator Action<IShip>(OverTimeEffect e)
@@ -38,7 +39,7 @@ namespace Lost_boy
                         Thread.Sleep(VALUES.TICK_INTERVAL);
                     }
                 });
-                th.Join();
+                th.Start();
             };
         }
 
@@ -92,4 +93,70 @@ namespace Lost_boy
     }
 
 
+}
+
+namespace Lost_boy
+{
+    namespace OnShots
+    {
+        public class SpeedChange
+        {
+            private OnShot heldFunction;
+            public static implicit operator OnShot(SpeedChange s)
+            {
+                return s.heldFunction;
+            }
+
+            public OnShot Get()
+            {
+                return heldFunction;
+            }
+
+            public SpeedChange(int val)
+            {
+                heldFunction = projectile =>
+                {
+                    projectile.Speed = new Vector(projectile.Speed.X, projectile.Speed.Y + val);
+                };
+            }
+
+            public SpeedChange(float ratio)
+            {
+                heldFunction = projectile =>
+                {
+                    projectile.Speed = new Vector((int)((float)projectile.Speed.X * ratio), (int)((float)projectile.Speed.Y * ratio));
+                };
+            }
+        }
+
+        public class SizeChange
+        {
+            private OnShot heldFunction;
+            public static implicit operator OnShot(SizeChange s)
+            {
+                return s.heldFunction;
+            }
+
+            public OnShot Get()
+            {
+                return heldFunction;
+            }
+
+            public SizeChange(int val)
+            {
+                heldFunction = projectile =>
+                {
+                    projectile.Size = new Vector(projectile.Size.X + val, projectile.Size.Y + val);
+                };
+            }
+
+            public SizeChange(float ratio)
+            {
+                heldFunction = projectile =>
+                {
+                    projectile.Size = new Vector((int)((float)projectile.Size.X * ratio), (int)((float)projectile.Size.Y * ratio));
+                };
+            }
+        }
+    }
 }
