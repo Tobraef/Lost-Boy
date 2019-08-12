@@ -2,26 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Drawing;
 
 namespace Lost_boy
 {
     public class Bonus : Mover, IProjectile
     {
-        private event Action<IShip> effects;
         private Rectangle drawable;
         private readonly Color color = Color.Blue;
-
-        public IProjectile Clone()
-        { // LOL, GOOD CODING
-            return null;
-        }
-
-        public void AppendEffect(Action<IShip> e)
-        {
-            effects += e;
-        }
+        public event Action<IShip> onHits;
 
         public Action TresholdPass
         {
@@ -31,7 +21,7 @@ namespace Lost_boy
 
         public void AffectShip(IShip ship)
         {
-            effects(ship);
+            onHits(ship);
         }
 
         public override void Move()
@@ -50,13 +40,13 @@ namespace Lost_boy
         }
 
         public Bonus(Vector position, Action<IShip> e) :
-            base (
+            base(
             position,
             new Vector(0, VALUES.BONUS_SPEED),
             new Vector(),
             new Vector(VALUES.BONUS_SIZE, VALUES.BONUS_SIZE))
         {
-            effects += e;
+            onHits += e;
             drawable = new Rectangle(position.X, position.Y, Size.X, Size.Y);
         }
     }
@@ -64,7 +54,7 @@ namespace Lost_boy
     public class WeaponSpeedBonus : Bonus
     {
         public WeaponSpeedBonus(Vector position) :
-            base(position, 
+            base(position,
             ship =>
             {
                 ship.Weapon.AppendOnShot(new OnShots.SpeedChange(VALUES.BONUS_VALUE));

@@ -9,19 +9,14 @@ namespace Lost_boy
 {
     public abstract class Laser : Mover, IBullet
     {
-        private event Action<IShip> shipEffects;
-        private event Modify dmgModifiers;
-        private int dmg;
+        public event Action<IShip> onHits;
+        public event Modify dmgModifiers;
         protected Direction direction;
 
-        public void AppendEffect(Action<IShip> e)
+        public int Damage
         {
-            shipEffects += e;
-        }
-
-        public virtual void AppendDmgModifier(Modify modifier)
-        {
-            dmgModifiers += modifier;
+            get;
+            set;
         }
 
         public Action TresholdPass
@@ -32,14 +27,14 @@ namespace Lost_boy
 
         public void AffectShip(IShip ship)
         {
-            shipEffects(ship);
-            int modifiedDmg = dmg;
-            Console.WriteLine("Modify is null : {0}", dmgModifiers == null);
+            if (onHits != null)
+                onHits(ship);
+            int dmg = Damage;
             if (dmgModifiers != null)
-                dmgModifiers(ref modifiedDmg);
-            ship.TakeDamage(modifiedDmg);
+                dmgModifiers(ref dmg);
+            ship.TakeDamage(dmg);
         }
-        
+
         public override void Move()
         {
             base.Move();
@@ -52,7 +47,7 @@ namespace Lost_boy
         public Laser(Vector position, Vector size, Direction dir, int speed, int damage) :
             base(position, new Vector(0, (int)dir * speed), new Vector(0, 0), size)
         {
-            this.dmg = damage;
+            this.Damage = damage;
         }
     }
 }

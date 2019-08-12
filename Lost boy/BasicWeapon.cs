@@ -24,17 +24,15 @@ namespace Lost_boy
             private set;
         }
 
-        public IBullet Ammo
+        public IBulletFactory Ammo
         {
-            set;
             get;
+            set;
         }
 
         public IBullet GetBullet(Vector launchPosition)
         {
-            Ammo.Position = launchPosition;
-            IBullet bullet = Ammo.Clone();
-            // TODO remove when onShot always holding an event
+            IBullet bullet = Ammo.Create(launchPosition);
             if (onShot != null)
                 onShot(bullet);
             Reload();
@@ -51,14 +49,14 @@ namespace Lost_boy
             });
         }
 
-        public BasicWeapon(IBullet ammo)
+        public BasicWeapon(IBulletFactory ammo)
         {
             this.Ammo = ammo;
             this.IsLoaded = true;
             this.reloadTime = VALUES.BASIC_WEAPON_RELOAD_TIME;
         }
 
-        public BasicWeapon(IBullet ammo, List<OnShot> onHits)
+        public BasicWeapon(IBulletFactory ammo, List<OnShot> onHits)
         {
             foreach (var f in onHits)
             {

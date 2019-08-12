@@ -93,7 +93,7 @@ namespace Lost_boy
             this.Defence = 0;
             this.onDamageTaken += (ref int val) => val -= Defence;
             this.onDamageTaken += (ref int val) => { if (Health <= 0) System.Windows.Forms.Application.Exit(); };
-            this.Weapon = new BasicWeapon(new BasicLaser(ShootingPosition, Direction.Up));
+            this.Weapon = new BasicWeapon(new BasicLaserFactory(Direction.Up));
             this.rectangle = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
             this.hpBar = new HPBar(this);
         }

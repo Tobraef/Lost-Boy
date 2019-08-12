@@ -51,13 +51,13 @@ namespace Lost_boy
             this.size = Size;
             this.direction = dir;
             var function = OverTimeEffect.Create(DamageEffect.Create(VALUES.BASIC_LASER_BURN_DMG), 3);
-            base.AppendEffect(ship =>
+            this.onHits += ship =>
             {
                 if (VALUES.BASIC_LASER_BURN_CHANCE >= new Random(5).Next(100))
                 {
                     function(ship);
                 }
-            });
+            };
             drawable = new Rectangle(Position.X, Position.Y, size.X, size.Y);
         }
     }

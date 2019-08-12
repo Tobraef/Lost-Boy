@@ -84,7 +84,7 @@ namespace Lost_boy
 
     public interface IProjectile : IMover
     {
-        void AppendEffect(Action<IShip> e);
+        event Action<IShip> onHits;
         Action TresholdPass
         {
             set;
@@ -94,14 +94,25 @@ namespace Lost_boy
 
     public interface IBullet : IProjectile
     {
-        IBullet Clone();
+        event Modify dmgModifiers;
+        int Damage
+        {
+            get;
+            set;
+        }
+    }
+
+    public interface IBulletFactory
+    {
+        void AppendOnHit(Action<IShip> e);
         void AppendDmgModifier(Modify m);
+        IBullet Create(Vector where);
     }
 
     public interface IWeapon
     {
         IBullet GetBullet(Vector launchPos);
-        IBullet Ammo
+        IBulletFactory Ammo
         {
             get;
             set;

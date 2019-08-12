@@ -84,7 +84,7 @@ namespace Lost_boy
         {
             return
                 this.Position.Y + this.Size.Y > projectile.Position.Y &&
-                this.Position.X + this.Size.X  > projectile.Position.X &&
+                this.Position.X + this.Size.X > projectile.Position.X &&
                 this.Position.X < projectile.Size.X + projectile.Position.X;
         }
 
@@ -97,8 +97,7 @@ namespace Lost_boy
             this.Health = VALUES.ENEMY_HEALTH;
             this.Defence = 0;
             this.onDamageTaken += (ref int val) => val -= Defence;
-            IBullet ammo = new BasicLaser(ShootingPosition, Direction.Down);
-            this.Weapon = new BasicWeapon(ammo);
+            this.Weapon = new BasicWeapon(new BasicLaserFactory(Direction.Down));
             this.rectangle = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
             this.strategy = new NormalMovementStrategy();
             this.hpBar = new HPBar(this);

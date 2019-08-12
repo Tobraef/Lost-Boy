@@ -141,14 +141,14 @@ namespace Lost_boy
                 e.ShootingChance = new Random(i++);
                 e.OnDeath += (EnemyShip ship) => toRemoveEnemies.Add(ship);
                 e.OnDeath += (EnemyShip ship) =>
+                {
+                    var b = new LaserDamageBonus(ship.Position);
+                    b.TresholdPass = () =>
                     {
-                        var b = new LaserDamageBonus(ship.Position);
-                        b.TresholdPass = () =>
-                            {
-                                this.toRemoveBullets.Add(b);
-                            };
-                        enemyProjectiles.Add(b);
+                        this.toRemoveBullets.Add(b);
                     };
+                    enemyProjectiles.Add(b);
+                };
             }
             this.KeyDown += KeyHandle;
             this.KeyUp += KeyUps;
