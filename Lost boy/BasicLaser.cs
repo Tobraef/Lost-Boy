@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using Lost_boy.OnHits;
 
 namespace Lost_boy
 {
@@ -40,24 +41,15 @@ namespace Lost_boy
             drawable.Y = this.Position.Y;
         }
 
-        public override IBullet Clone()
-        {
-            return new BasicLaser(this.Position, this.direction);
-        }
-
         public BasicLaser(Vector pos, Direction dir) :
             base(pos, new Vector(5, 10), dir, VALUES.BASIC_LASER_SPEED, VALUES.BASIC_LASER_DMG)
         {
             this.size = Size;
             this.direction = dir;
-            var function = OverTimeEffect.Create(DamageEffect.Create(VALUES.BASIC_LASER_BURN_DMG), 3);
-            this.onHits += ship =>
-            {
-                if (VALUES.BASIC_LASER_BURN_CHANCE >= new Random(5).Next(100))
-                {
-                    function(ship);
-                }
-            };
+            this.onHits += new BurnChance(
+                VALUES.BASIC_LASER_BURN_DMG,
+                VALUES.BASIC_LASER_BURN_TICKS,
+                VALUES.BASIC_LASER_BURN_CHANCE);
             drawable = new Rectangle(Position.X, Position.Y, size.X, size.Y);
         }
     }

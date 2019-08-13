@@ -9,6 +9,7 @@ namespace Lost_boy
 {
     public abstract class Laser : Mover, IBullet
     {
+        public event Action onDeath;
         public event Action<IShip> onHits;
         public event Modify dmgModifiers;
         protected Direction direction;
@@ -16,12 +17,6 @@ namespace Lost_boy
         public int Damage
         {
             get;
-            set;
-        }
-
-        public Action TresholdPass
-        {
-            private get;
             set;
         }
 
@@ -33,16 +28,8 @@ namespace Lost_boy
             if (dmgModifiers != null)
                 dmgModifiers(ref dmg);
             ship.TakeDamage(dmg);
+            onDeath();
         }
-
-        public override void Move()
-        {
-            base.Move();
-            if (Position.Y > VALUES.HEIGHT || Position.Y < 0)
-                TresholdPass();
-        }
-
-        public abstract IBullet Clone();
 
         public Laser(Vector position, Vector size, Direction dir, int speed, int damage) :
             base(position, new Vector(0, (int)dir * speed), new Vector(0, 0), size)

@@ -47,6 +47,7 @@ namespace Lost_boy
                 Thread.Sleep(this.reloadTime);
                 IsLoaded = true;
             });
+            th.Start();
         }
 
         public BasicWeapon(IBulletFactory ammo)
@@ -56,9 +57,9 @@ namespace Lost_boy
             this.reloadTime = VALUES.BASIC_WEAPON_RELOAD_TIME;
         }
 
-        public BasicWeapon(IBulletFactory ammo, List<OnShot> onHits)
+        public BasicWeapon(IBulletFactory ammo, List<OnShot> onShots)
         {
-            foreach (var f in onHits)
+            foreach (var f in onShots)
             {
                 this.onShot += f;
             }

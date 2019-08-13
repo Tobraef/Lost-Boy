@@ -13,6 +13,8 @@ namespace Lost_boy
         private Rectangle rectangle;
         private Color color = Color.Green;
         private HPBar hpBar;
+        public event Action onDeath;
+        public event Action<IProjectile> bulletAdder;
 
         public IWeapon Weapon
         {
@@ -27,6 +29,12 @@ namespace Lost_boy
         }
 
         public int Defence
+        {
+            get;
+            set;
+        }
+
+        public int Gold
         {
             get;
             set;
@@ -47,7 +55,7 @@ namespace Lost_boy
             this.Health -= val;
         }
 
-        public void Shoot(Action<IProjectile> bulletAdder)
+        public void Shoot()
         {
             if (Weapon.IsLoaded)
                 bulletAdder(Weapon.GetBullet(ShootingPosition));

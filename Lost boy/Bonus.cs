@@ -12,23 +12,17 @@ namespace Lost_boy
         private Rectangle drawable;
         private readonly Color color = Color.Blue;
         public event Action<IShip> onHits;
-
-        public Action TresholdPass
-        {
-            private get;
-            set;
-        }
+        public event Action onDeath;
 
         public void AffectShip(IShip ship)
         {
             onHits(ship);
+            onDeath();
         }
 
         public override void Move()
         {
             base.Move();
-            if (Position.Y > VALUES.HEIGHT || Position.Y < 0)
-                TresholdPass();
             drawable.X = Position.X;
             drawable.Y = Position.Y;
         }
@@ -70,9 +64,7 @@ namespace Lost_boy
             {
                 ship.Weapon.Ammo.AppendDmgModifier((ref int val) =>
                 {
-                    Console.WriteLine("Before : {0}", val);
                     val += 10;
-                    Console.WriteLine("After : {0}", val);
                 });
             })
         { }

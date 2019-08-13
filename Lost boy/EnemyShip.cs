@@ -14,8 +14,8 @@ namespace Lost_boy
         private Color color = Color.Red;
         private IMovementStrategy strategy = null;
         private HPBar hpBar;
-
-        public event Action<EnemyShip> OnDeath;
+        public event Action onDeath;
+        public event Action<IProjectile> bulletAdder;
 
         public Random ShootingChance
         {
@@ -41,6 +41,12 @@ namespace Lost_boy
             set;
         }
 
+        public int Gold
+        {
+            get;
+            set;
+        }
+
         private Vector ShootingPosition
         {
             get
@@ -51,13 +57,16 @@ namespace Lost_boy
         public void TakeDamage(int val)
         {
             onDamageTaken(ref val);
-            this.Health -= val;
-            this.hpBar.HpChanged(Health);
-            if (Health <= 0)
-                OnDeath(this);
+            if (val > 0)
+            {
+                this.Health -= val;
+                this.hpBar.HpChanged(Health);
+                if (Health <= 0)
+                    onDeath();
+            }
         }
 
-        public void Shoot(Action<IProjectile> bulletAdder)
+        public void Shoot()
         {
             if (ShootingChance.Next(100) > 90)
                 bulletAdder(Weapon.GetBullet(ShootingPosition));

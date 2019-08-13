@@ -17,18 +17,18 @@ namespace Lost_boy
         private List<EnemyShip> toRemoveEnemies = new List<EnemyShip>();
         private List<IProjectile> enemyProjectiles = new List<IProjectile>();
         private List<IProjectile> playersProjectiles = new List<IProjectile>();
-        private List<IProjectile> toRemoveBullets = new List<IProjectile>();
+        private List<IProjectile> toRemoveProjectiles = new List<IProjectile>();
         private Timer timer;
 
         private void PlayerBulletAdder(IProjectile bullet)
         {
-            bullet.TresholdPass = () => toRemoveBullets.Add(bullet);
+            bullet.onDeath += () => toRemoveProjectiles.Add(bullet);
             playersProjectiles.Add(bullet);
         }
 
         private void EnemyBulletAdder(IProjectile bullet)
         {
-            bullet.TresholdPass = () => toRemoveBullets.Add(bullet);
+            bullet.onDeath += () => toRemoveProjectiles.Add(bullet);
             enemyProjectiles.Add(bullet);
         }
 
@@ -43,7 +43,7 @@ namespace Lost_boy
                     player.Speed = new Vector(VALUES.PLAYER_SPEED, 0);
                     break;
                 case Keys.S:
-                    player.Shoot(PlayerBulletAdder);
+                    player.Shoot();
                     break;
             }
         }
@@ -71,14 +71,17 @@ namespace Lost_boy
             foreach (var enemy in enemies)
             {
                 enemy.Move();
-                enemy.Shoot(EnemyBulletAdder);
+                enemy.Shoot();
                 foreach (var bullet in playersProjectiles)
                 {
                     bullet.Move();
-                    if (enemy.IsHit(bullet))
+                    if (bullet.Position.Y + bullet.Size.Y < 0)
+                    {
+                        toRemoveProjectiles.Add(bullet);
+                    }
+                    else if (enemy.IsHit(bullet))
                     {
                         bullet.AffectShip(enemy);
-                        toRemoveBullets.Add(bullet);
                     }
                 }
             }
@@ -87,19 +90,22 @@ namespace Lost_boy
             foreach (var bullet in enemyProjectiles)
             {
                 bullet.Move();
-                if (player.IsHit(bullet))
+                if (bullet.Position.Y > VALUES.HEIGHT)
+                {
+                    toRemoveProjectiles.Add(bullet);
+                }
+                else if (player.IsHit(bullet))
                 {
                     bullet.AffectShip(player);
-                    toRemoveBullets.Add(bullet);
                 }
             }
 
-            foreach (var bullet in toRemoveBullets)
+            foreach (var bullet in toRemoveProjectiles)
             {
                 playersProjectiles.Remove(bullet);
                 enemyProjectiles.Remove(bullet);
             }
-            toRemoveBullets.Clear();
+            toRemoveProjectiles.Clear();
             this.Refresh();
         }
 
@@ -124,6 +130,8 @@ namespace Lost_boy
             this.BackColor = Color.Black;
             this.Size = new Size(VALUES.WIDTH, VALUES.HEIGHT + 200);
             player = new PlayerShip();
+            player.bulletAdder += PlayerBulletAdder;
+            player.Weapon.Ammo.AppendOnHit(new OnHits.GoldDig(EnemyBulletAdder, VALUES.GOLD_AVERAGE_VALUE, VALUES.GOLD_DROP_CHANCE));
             enemies = new List<EnemyShip>
             {
                 new EnemyShip(new Vector(50,50), new Vector()),
@@ -136,18 +144,35 @@ namespace Lost_boy
                 new EnemyShip(new Vector(750,50), new Vector()),
             };
             int i = 1;
+
             foreach (var e in enemies)
             {
+                e.bulletAdder += EnemyBulletAdder;
                 e.ShootingChance = new Random(i++);
-                e.OnDeath += (EnemyShip ship) => toRemoveEnemies.Add(ship);
-                e.OnDeath += (EnemyShip ship) =>
+                e.onDeath += () => toRemoveEnemies.Add(e);
+                e.onDeath += () =>
                 {
-                    var b = new LaserDamageBonus(ship.Position);
-                    b.TresholdPass = () =>
+                    if (VALUES.BONUS_DROP_CHANCE > VALUES.random.Next(100))
                     {
-                        this.toRemoveBullets.Add(b);
-                    };
-                    enemyProjectiles.Add(b);
+                        var bonus = new LaserDamageBonus(e.Position);
+                        bonus.onDeath += () =>
+                        {
+                            this.toRemoveProjectiles.Add(bonus);
+                        };
+                        enemyProjectiles.Add(bonus);
+                    }
+                };
+                e.onDeath += () =>
+                {
+                    if (VALUES.GOLD_DROP_CHANCE > VALUES.random.Next(100))
+                    {
+                        var bonus = new GoldCoin(e.Position, VALUES.GOLD_AVERAGE_VALUE);
+                        bonus.onDeath += () =>
+                        {
+                            this.toRemoveProjectiles.Add(bonus);
+                        };
+                        enemyProjectiles.Add(bonus);
+                    }
                 };
             }
             this.KeyDown += KeyHandle;

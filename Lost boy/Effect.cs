@@ -56,13 +56,13 @@ namespace Lost_boy
                         Thread.Sleep(VALUES.TICK_INTERVAL);
                     }
                 });
-                th.Join();
+                th.Start();
             };
             Ticks = ticks;
         }
     }
 
-    public class DamageEffect : IEffect
+    public class Effect : IEffect
     {
         public Action<IShip> WrappedAction
         {
@@ -70,29 +70,71 @@ namespace Lost_boy
             private set;
         }
 
-        public static Action<IShip> Create(int value)
+        public Action<IShip> Get()
         {
-            return ship =>
-            {
-                ship.TakeDamage(value);
-            };
+            return this.WrappedAction;
         }
 
-        public DamageEffect(int value)
+        public Effect(Action<IShip> action)
         {
-            WrappedAction = ship =>
-            {
-                ship.TakeDamage(value);
-            };
+            WrappedAction = action;
         }
 
-        public static implicit operator Action<IShip>(DamageEffect e)
+        public static implicit operator Action<IShip>(Effect e)
         {
             return e.WrappedAction;
         }
     }
 
+    public class TemporaryEffect : IEffect
+    {
+        public Action<IShip> WrappedAction
+        {
+            get;
+            private set;
+        }
 
+        public Action<IShip> Get()
+        {
+            return WrappedAction;
+        }
+
+        public static implicit operator Action<IShip>(TemporaryEffect e)
+        {
+            return e.WrappedAction;
+        }
+
+        public TemporaryEffect(Action<IShip> sub, Action<IShip> unSub, int milis)
+        {
+            WrappedAction = ship =>
+            {
+                Thread th = new Thread(() =>
+                {
+                    sub(ship);
+                    Thread.Sleep(milis);
+                    unSub(ship);
+                });
+                th.Start();
+            };
+        }
+    }
+
+    public class ShieldEffect : TemporaryEffect
+    {
+        public ShieldEffect()
+            : base(
+            ship =>
+            {
+                ship.Defence += 1000;
+            },
+            ship =>
+            {
+                ship.Defence -= 1000;
+            },
+            10000
+            )
+        { }
+    }
 }
 
 namespace Lost_boy
@@ -157,6 +199,39 @@ namespace Lost_boy
                     projectile.Size = new Vector((int)((float)projectile.Size.X * ratio), (int)((float)projectile.Size.Y * ratio));
                 };
             }
+        }
+    }
+
+    namespace OnHits
+    {
+        public class BurnChance : OverTimeEffect
+        {
+            public BurnChance(int value, int ticks, int chance)
+                : base(
+                ship =>
+                {
+                    if (chance >= new Random(5).Next(100))
+                    {
+                        ship.Health -= value;
+                    }
+                },
+                ticks)
+            {}
+        }
+
+        public class GoldDig : Effect
+        {
+            public GoldDig(Action<IProjectile> adder, int value, int chance)
+                : base(
+            ship =>
+            {
+                if (chance > VALUES.random.Next(100))
+                    ship.onDeath += () =>
+                    {
+                        adder(new GoldCoin(ship.Position, value));
+                    };
+            })
+            { }
         }
     }
 }

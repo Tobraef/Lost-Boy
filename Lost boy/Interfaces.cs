@@ -13,6 +13,11 @@ namespace Lost_boy
         public delegate void OnShot(IProjectile p);
     }
 
+    namespace OnHits
+    {
+        public delegate void OnHit(IShip ship);
+    }
+
     public enum Direction : int
     {
         Up = -1,
@@ -20,6 +25,8 @@ namespace Lost_boy
     }
     public static class VALUES
     {
+        public static Random random = new Random(5);
+
         public const int HEIGHT = 600;
         public const int WIDTH = 1000;
 
@@ -41,11 +48,16 @@ namespace Lost_boy
         public const int BASIC_LASER_DMG = 10;
         public const int BASIC_LASER_SPEED = 10;
         public const int BASIC_LASER_BURN_DMG = 5;
+        public const int BASIC_LASER_BURN_TICKS = 3;
         public const int BASIC_LASER_BURN_CHANCE = 20;
 
         public const int BONUS_SPEED = 15;
         public const int BONUS_SIZE = 15;
         public const int BONUS_VALUE = 10;
+        public const int BONUS_DROP_CHANCE = 20;
+
+        public const int GOLD_DROP_CHANCE = 50;
+        public const int GOLD_AVERAGE_VALUE = 50;
     }
 
     public interface IMover
@@ -85,11 +97,8 @@ namespace Lost_boy
     public interface IProjectile : IMover
     {
         event Action<IShip> onHits;
-        Action TresholdPass
-        {
-            set;
-        }
         void AffectShip(IShip ship);
+        event Action onDeath;
     }
 
     public interface IBullet : IProjectile
@@ -126,6 +135,8 @@ namespace Lost_boy
 
     public interface IShip : IMover
     {
+        event Action<IProjectile> bulletAdder;
+        event Action onDeath;
         IWeapon Weapon
         {
             get;
@@ -141,7 +152,12 @@ namespace Lost_boy
             get;
             set;
         }
-        void Shoot(Action<IProjectile> bulletAdder);
+        int Gold
+        {
+            get;
+            set;
+        }
+        void Shoot();
         void TakeDamage(int val);
         bool IsHit(IProjectile projectile);
     }
