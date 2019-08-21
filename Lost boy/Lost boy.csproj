@@ -50,7 +50,9 @@
     <Compile Include="BasicLaser.cs" />
     <Compile Include="BasicWeapon.cs" />
     <Compile Include="Bonus.cs" />
+    <Compile Include="BulletFactory.cs" />
     <Compile Include="EnemyShip.cs" />
+    <Compile Include="GoldCoin.cs" />
     <Compile Include="HPBar.cs" />
     <Compile Include="Laser.cs" />
     <Compile Include="Effect.cs" />

@@ -35,12 +35,13 @@ namespace Lost_boy
 
         public const int PLAYER_HEIGHT = 50;
         public const int PLAYER_WIDTH = 50;
-        public const int PLAYER_HEALTH = 1000;
+        public const int PLAYER_HEALTH = 200;
         public const int PLAYER_SPEED = 10;
 
         public const int ENEMY_HEIGHT = 30;
         public const int ENEMY_WIDTH = 30;
         public const int ENEMY_HEALTH = 30;
+        public const int ENEMY_FALLING_SPEED = 5;
 
         public const int TICK_INTERVAL = 3000; //milis
 
@@ -54,7 +55,7 @@ namespace Lost_boy
         public const int BONUS_SPEED = 15;
         public const int BONUS_SIZE = 15;
         public const int BONUS_VALUE = 10;
-        public const int BONUS_DROP_CHANCE = 20;
+        public const int BONUS_DROP_CHANCE = 100;
 
         public const int GOLD_DROP_CHANCE = 50;
         public const int GOLD_AVERAGE_VALUE = 50;
@@ -96,6 +97,10 @@ namespace Lost_boy
 
     public interface IProjectile : IMover
     {
+        Direction Direction
+        {
+            get;
+        }
         event Action<IShip> onHits;
         void AffectShip(IShip ship);
         event Action onDeath;
@@ -126,6 +131,11 @@ namespace Lost_boy
             get;
             set;
         }
+        int ReloadTime
+        {
+            get;
+            set;
+        }
         bool IsLoaded
         {
             get;
@@ -138,6 +148,11 @@ namespace Lost_boy
         event Action<IProjectile> bulletAdder;
         event Action onDeath;
         IWeapon Weapon
+        {
+            get;
+            set;
+        }
+        int MaxHealth
         {
             get;
             set;
@@ -157,14 +172,20 @@ namespace Lost_boy
             get;
             set;
         }
+        int MaxSpeed
+        {
+            get;
+            set;
+        }
         void Shoot();
         void TakeDamage(int val);
+        void TakeTrueDamage(int val);
         bool IsHit(IProjectile projectile);
     }
 
     public interface IMovementStrategy
     {
-        void ApplyStrategy(Mover m);
-        void StopStrategy(Mover m);
+        void ApplyStrategy(IShip m);
+        void StopStrategy(IShip m);
     }
 }

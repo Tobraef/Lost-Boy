@@ -37,10 +37,12 @@ namespace Lost_boy
             switch (args.KeyCode)
             {
                 case Keys.A:
-                    player.Speed = new Vector(-VALUES.PLAYER_SPEED, 0);
+                    if (player.MaxSpeed > 0)
+                        player.Speed = new Vector(-player.MaxSpeed, 0);
                     break;
                 case Keys.D:
-                    player.Speed = new Vector(VALUES.PLAYER_SPEED, 0);
+                    if (player.MaxSpeed > 0)
+                        player.Speed = new Vector(player.MaxSpeed, 0);
                     break;
                 case Keys.S:
                     player.Shoot();
@@ -63,14 +65,17 @@ namespace Lost_boy
 
         void Elapse(object sender, EventArgs e)
         {
-            foreach (var enemy in toRemoveEnemies)
-            {
-                enemies.Remove(enemy);
-            }
-            toRemoveEnemies.Clear();
             foreach (var enemy in enemies)
             {
                 enemy.Move();
+                if (enemy.Position.Y > VALUES.HEIGHT)
+                    enemy.Teleport(enemy.Position.X, -enemy.Size.Y);
+
+                if (enemy.Position.X < -enemy.Size.X - 10)
+                    enemy.Teleport(VALUES.WIDTH, enemy.Position.Y);
+                else if (enemy.Position.X > VALUES.WIDTH + enemy.Size.X + 10)
+                    enemy.Teleport(0, enemy.Position.Y);
+
                 enemy.Shoot();
                 foreach (var bullet in playersProjectiles)
                 {
@@ -100,6 +105,11 @@ namespace Lost_boy
                 }
             }
 
+            foreach (var enemy in toRemoveEnemies)
+            {
+                enemies.Remove(enemy);
+            }
+            toRemoveEnemies.Clear();
             foreach (var bullet in toRemoveProjectiles)
             {
                 playersProjectiles.Remove(bullet);
@@ -124,41 +134,64 @@ namespace Lost_boy
 
         }
 
-        public Form1()
+        private Bonus GetRandomBonus(Vector position)
         {
-            InitializeComponent();
-            this.BackColor = Color.Black;
-            this.Size = new Size(VALUES.WIDTH, VALUES.HEIGHT + 200);
+            if (VALUES.BONUS_DROP_CHANCE > VALUES.random.Next(100))
+            {
+                switch (VALUES.random.Next(1,6))
+                {
+                    case 1:
+                        return new LaserDamageBonus(position);
+                    case 2:
+                        return new BulletSizeChangeBonus(position);
+                    case 3:
+                        return new BurnBonus(position);
+                    case 4:
+                        return new BulletSpeedBonus(position);
+                    case 5:
+                        return new HealthBonus(position);
+                    case 6:
+                        return new WeaponReloadTimeBonus(position);
+                    default:
+                        return null;
+                }
+            }
+            return null;
+        }
+
+        private void SetPlayer()
+        {
             player = new PlayerShip();
             player.bulletAdder += PlayerBulletAdder;
-            player.Weapon.Ammo.AppendOnHit(new OnHits.GoldDig(EnemyBulletAdder, VALUES.GOLD_AVERAGE_VALUE, VALUES.GOLD_DROP_CHANCE));
+            player.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(10, 3, 20));
+        }
+
+        private void SetEnemies()
+        {
             enemies = new List<EnemyShip>
             {
-                new EnemyShip(new Vector(50,50), new Vector()),
-                new EnemyShip(new Vector(150,50), new Vector()),
-                new EnemyShip(new Vector(250,50), new Vector()),
-                new EnemyShip(new Vector(350,50), new Vector()),
-                new EnemyShip(new Vector(450,50), new Vector()),
-                new EnemyShip(new Vector(550,50), new Vector()),
-                new EnemyShip(new Vector(650,50), new Vector()),
-                new EnemyShip(new Vector(750,50), new Vector()),
+                new RockyEnemy(new Vector(VALUES.WIDTH / 5,150)),
+                new RockyEnemy(new Vector(VALUES.WIDTH * 2 / 5,150)),
+                new RockyEnemy(new Vector(VALUES.WIDTH * 3 / 5,150)),
+                new RockyEnemy(new Vector(VALUES.WIDTH * 4 / 5,150)),
+                new FrostyEnemy(new Vector(450,50)),
+                new FrostyEnemy(new Vector(550,50)),
+                new FrostyEnemy(new Vector(650,50)),
+                new FrostyEnemy(new Vector(750,50)),
+                new TrickyEnemy(player, new Vector(50, 300)),
+                new TrickyEnemy(player, new Vector(300, 300))
             };
-            int i = 1;
 
             foreach (var e in enemies)
             {
                 e.bulletAdder += EnemyBulletAdder;
-                e.ShootingChance = new Random(i++);
                 e.onDeath += () => toRemoveEnemies.Add(e);
                 e.onDeath += () =>
                 {
-                    if (VALUES.BONUS_DROP_CHANCE > VALUES.random.Next(100))
+                    var bonus = GetRandomBonus(e.Position);
+                    if (bonus != null)
                     {
-                        var bonus = new LaserDamageBonus(e.Position);
-                        bonus.onDeath += () =>
-                        {
-                            this.toRemoveProjectiles.Add(bonus);
-                        };
+                        bonus.onDeath += () => this.toRemoveProjectiles.Add(bonus);
                         enemyProjectiles.Add(bonus);
                     }
                 };
@@ -174,7 +207,17 @@ namespace Lost_boy
                         enemyProjectiles.Add(bonus);
                     }
                 };
+                e.SetDefaultMoveStrategy();
             }
+        }
+
+        public Form1()
+        {
+            InitializeComponent();
+            this.BackColor = Color.Black;
+            this.Size = new Size(VALUES.WIDTH, VALUES.HEIGHT + 200);
+            SetPlayer();
+            SetEnemies();
             this.KeyDown += KeyHandle;
             this.KeyUp += KeyUps;
             this.Paint += PaintGame;

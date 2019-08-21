@@ -14,6 +14,11 @@ namespace Lost_boy
         public event Action<IShip> onHits;
         public event Action onDeath;
 
+        public Direction Direction
+        {
+            get { return Direction.Down; }
+        }
+
         public void AffectShip(IShip ship)
         {
             onHits(ship);
@@ -35,9 +40,9 @@ namespace Lost_boy
 
         public GoldCoin(Vector position, int ammount)
             : base(position,
-                   new Vector (0, VALUES.BONUS_SPEED),
+                   new Vector(0, VALUES.BONUS_SPEED),
                    new Vector(),
-                   new Vector(VALUES.BONUS_SIZE/2, VALUES.BONUS_SIZE/2))
+                   new Vector(VALUES.BONUS_SIZE / 2, VALUES.BONUS_SIZE / 2))
         {
             this.onHits += ship => ship.Gold += ammount;
             this.drawable = new Rectangle(position.X, position.Y, Size.X, Size.Y);

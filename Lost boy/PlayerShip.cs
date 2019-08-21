@@ -11,6 +11,7 @@ namespace Lost_boy
     {
         private event Modify onDamageTaken;
         private Rectangle rectangle;
+        private int maxHealth;
         private Color color = Color.Green;
         private HPBar hpBar;
         public event Action onDeath;
@@ -20,6 +21,17 @@ namespace Lost_boy
         {
             get;
             set;
+        }
+
+        public int MaxHealth
+        {
+            get { return maxHealth; }
+            set
+            {
+                Health += value - maxHealth;
+                maxHealth = value;
+                this.hpBar = new HPBar(this);
+            }
         }
 
         public int Health
@@ -40,6 +52,12 @@ namespace Lost_boy
             set;
         }
 
+        public int MaxSpeed 
+        {
+            get;
+            set;
+        }
+
         private Vector ShootingPosition
         {
             get
@@ -51,8 +69,19 @@ namespace Lost_boy
         public void TakeDamage(int val)
         {
             onDamageTaken(ref val);
-            this.hpBar.HpChanged(Health);
+            if (val > 0)
+            {
+                this.Health -= val;
+                this.hpBar.HpChanged(Health);
+            }
+        }
+
+        public void TakeTrueDamage(int val)
+        {
             this.Health -= val;
+            this.hpBar.HpChanged(Health);
+            if (Health <= 0)
+                onDeath();
         }
 
         public void Shoot()
@@ -68,19 +97,20 @@ namespace Lost_boy
             hpBar.Draw(g, p);
         }
 
+        public void Heal(int val)
+        {
+            Health += val;
+            if (Health > MaxHealth)
+                Health = MaxHealth;
+            hpBar.HpChanged(-val);
+        }
+
         public override void Move()
         {
             base.Move();
-            this.hpBar.UpdatePosition(Speed.X);
+            this.hpBar.UpdatePosition(Speed.X, Speed.Y);
             rectangle.X = Position.X;
             rectangle.Y = Position.Y;
-        }
-
-        public void Move(int dx)
-        {
-            Position = new Vector(Position.X + dx, Position.Y);
-            this.hpBar.UpdatePosition(dx);
-            rectangle.X = Position.X;
         }
 
         public bool IsHit(IProjectile projectile)
@@ -97,13 +127,15 @@ namespace Lost_boy
                  new Vector(),
                  new Vector(VALUES.PLAYER_WIDTH, VALUES.PLAYER_HEIGHT))
         {
-            this.Health = VALUES.PLAYER_HEALTH;
+            this.MaxSpeed = VALUES.PLAYER_SPEED;
+            this.MaxHealth = VALUES.PLAYER_HEALTH;
             this.Defence = 0;
             this.onDamageTaken += (ref int val) => val -= Defence;
             this.onDamageTaken += (ref int val) => { if (Health <= 0) System.Windows.Forms.Application.Exit(); };
             this.Weapon = new BasicWeapon(new BasicLaserFactory(Direction.Up));
             this.rectangle = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
             this.hpBar = new HPBar(this);
+            this.Health = MaxHealth;
         }
     }
 }

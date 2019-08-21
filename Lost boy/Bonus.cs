@@ -10,9 +10,14 @@ namespace Lost_boy
     public class Bonus : Mover, IProjectile
     {
         private Rectangle drawable;
-        private readonly Color color = Color.Blue;
+        protected Color color = Color.Blue;
         public event Action<IShip> onHits;
         public event Action onDeath;
+
+        public Direction Direction
+        {
+            get { return Direction.Down; }
+        }
 
         public void AffectShip(IShip ship)
         {
@@ -45,15 +50,17 @@ namespace Lost_boy
         }
     }
 
-    public class WeaponSpeedBonus : Bonus
+    public class BulletSpeedBonus : Bonus
     {
-        public WeaponSpeedBonus(Vector position) :
+        public BulletSpeedBonus(Vector position) :
             base(position,
             ship =>
             {
                 ship.Weapon.AppendOnShot(new OnShots.SpeedChange(VALUES.BONUS_VALUE));
             })
-        { }
+        {
+            this.color = Color.Yellow;
+        }
     }
 
     public class LaserDamageBonus : Bonus
@@ -64,9 +71,63 @@ namespace Lost_boy
             {
                 ship.Weapon.Ammo.AppendDmgModifier((ref int val) =>
                 {
-                    val += 10;
+                    val += 2;
                 });
             })
-        { }
+        {
+            this.color = Color.Red;
+        }
+    }
+
+    public class BulletSizeChangeBonus : Bonus
+    {
+        public BulletSizeChangeBonus(Vector position) :
+            base(position,
+            ship =>
+            {
+                ship.Weapon.AppendOnShot(new OnShots.SizeChange(1));
+            })
+        {
+            this.color = Color.Pink;
+        }
+    }
+
+    public class BurnBonus : Bonus
+    {
+        public BurnBonus(Vector position) :
+            base(position,
+            ship =>
+            {
+                ship.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(5, 3, 20));
+            })
+        {
+            this.color = Color.Orange;
+        }
+    }
+
+    public class WeaponReloadTimeBonus : Bonus
+    {
+        public WeaponReloadTimeBonus(Vector position) :
+            base(position,
+            ship =>
+            {
+                ship.Weapon.ReloadTime -= 500;
+            })
+        {
+            this.color = Color.Gray;
+        }
+    }
+
+    public class HealthBonus : Bonus
+    {
+        public HealthBonus(Vector position) :
+            base(position,
+            ship =>
+            {
+                ((PlayerShip)ship).Heal(50);
+            })
+        {
+            this.color = Color.Green;
+        }
     }
 }

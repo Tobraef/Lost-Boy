@@ -2,44 +2,81 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
+using System.Timers;
 
 namespace Lost_boy
 {
+    public class FallDownStrategy : IMovementStrategy
+    {
+        private int circulationPointX;
+        private const int circulatingAccelarationX = 1;
+        Timer timer;
+        public FallDownStrategy()
+        {
+            timer = new Timer(5000);
+            timer.Elapsed += (o, args) =>
+            {
+                circulationPointX = VALUES.random.Next(VALUES.WIDTH);
+            };
+            timer.Start();
+        }
+        
+        public void ApplyStrategy(IShip ship)
+        {
+            if (ship.Position.X > circulationPointX)
+                ship.Acceleration = new Vector(circulatingAccelarationX, 0);
+            else
+                ship.Acceleration = new Vector(-circulatingAccelarationX, 0);
+            if (Math.Abs(ship.Speed.X) < ship.MaxSpeed)
+                ship.Speed = new Vector(ship.Speed.X, VALUES.ENEMY_FALLING_SPEED);
+            else
+            {
+                if (ship.Speed.X > 0)
+                    ship.Speed = new Vector(ship.MaxSpeed, VALUES.ENEMY_FALLING_SPEED);
+                else
+                    ship.Speed = new Vector(-ship.MaxSpeed, VALUES.ENEMY_FALLING_SPEED);
+            }
+        }
+
+        public void StopStrategy(IShip ship)
+        {
+            timer.Enabled = false;
+            ship.Speed = new Vector();
+        }
+    }
+
     public class NormalMovementStrategy : IMovementStrategy
     {
-        private const int speed = 15;
-        Func<Mover, bool> currentMovement;
-        private void Strategy(Mover ship)
+        private Func<IShip, bool> currentMovement;
+        private void SwitchStrategy(IShip ship)
         {
-            if (!currentMovement(ship))
-                return;
             if (currentMovement == MoveLeft)
                 currentMovement = MoveRight;
             else
                 currentMovement = MoveLeft;
         }
 
-        private bool MoveLeft(Mover ship)
+        private bool MoveLeft(IShip ship)
         {
-            if (ship.Speed.X != -speed)
-                ship.Speed = new Vector(-speed, 0);
-            return ship.Position.X <= speed;
+            if (ship.Speed.X != -ship.MaxSpeed)
+                ship.Speed = new Vector(-ship.MaxSpeed, 0);
+            return ship.Position.X <= 0;
         }
 
-        private bool MoveRight(Mover ship)
+        private bool MoveRight(IShip ship)
         {
-            if (ship.Speed.Y != speed)
-                ship.Speed = new Vector(speed, 0);
+            if (ship.Speed.X != ship.MaxSpeed)
+                ship.Speed = new Vector(ship.MaxSpeed, 0);
             return ship.Position.X + ship.Size.X >= VALUES.WIDTH;
         }
 
-        public void ApplyStrategy(Mover ship)
+        public void ApplyStrategy(IShip ship)
         {
-            Strategy(ship);
+            if (currentMovement(ship))
+                SwitchStrategy(ship);
         }
 
-        public void StopStrategy(Mover ship)
+        public void StopStrategy(IShip ship)
         {
             ship.Speed = new Vector();
         }
@@ -47,6 +84,39 @@ namespace Lost_boy
         public NormalMovementStrategy()
         {
             this.currentMovement = MoveLeft;
+        }
+    }
+
+    public class FindAndShootStrategy : IMovementStrategy
+    {
+        private Mover watchedShip;
+
+        public FindAndShootStrategy(Mover m)
+        {
+            this.watchedShip = m;
+        }
+
+        public void ApplyStrategy(IShip ship)
+        {
+            if (ship.Position.X > watchedShip.Position.X)
+                ship.Acceleration = new Vector(-1, 0);
+            else
+                ship.Acceleration = new Vector(1, 0);
+
+            if (Math.Abs(ship.Speed.X) < ship.MaxSpeed)
+                return;
+            else
+            {
+                if (ship.Speed.X > 0)
+                    ship.Speed = new Vector(ship.MaxSpeed, 0);
+                else
+                    ship.Speed = new Vector(-ship.MaxSpeed, 0);
+            }
+        }
+
+        public void StopStrategy(IShip ship)
+        {
+            ship.Speed = new Vector();
         }
     }
 }

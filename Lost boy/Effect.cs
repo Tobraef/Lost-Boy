@@ -45,20 +45,21 @@ namespace Lost_boy
 
         public OverTimeEffect(Action<IShip> action, int ticks)
         {
+            Ticks = ticks;
             WrappedAction = ship =>
             {
                 Thread th = new Thread(() =>
                 {
-                    while (ticks > 0)
+                    int times = Ticks;
+                    while (times > 0)
                     {
                         action(ship);
-                        ticks--;
+                        times--;
                         Thread.Sleep(VALUES.TICK_INTERVAL);
                     }
                 });
                 th.Start();
             };
-            Ticks = ticks;
         }
     }
 
@@ -158,15 +159,8 @@ namespace Lost_boy
             {
                 heldFunction = projectile =>
                 {
-                    projectile.Speed = new Vector(projectile.Speed.X, projectile.Speed.Y + val);
-                };
-            }
-
-            public SpeedChange(float ratio)
-            {
-                heldFunction = projectile =>
-                {
-                    projectile.Speed = new Vector((int)((float)projectile.Speed.X * ratio), (int)((float)projectile.Speed.Y * ratio));
+                    projectile.Speed = new Vector(projectile.Speed.X,
+                        projectile.Speed.Y + (int)projectile.Direction*val);
                 };
             }
         }
@@ -204,19 +198,22 @@ namespace Lost_boy
 
     namespace OnHits
     {
-        public class BurnChance : OverTimeEffect
+        public class BurnChance : Effect
         {
             public BurnChance(int value, int ticks, int chance)
                 : base(
                 ship =>
                 {
-                    if (chance >= new Random(5).Next(100))
+                    if (chance >= VALUES.random.Next(100))
                     {
-                        ship.Health -= value;
+                        new OverTimeEffect(s =>
+                        {
+                            if (s.Health > 0)
+                                s.TakeTrueDamage(value);
+                        }, ticks).WrappedAction(ship);
                     }
-                },
-                ticks)
-            {}
+                })
+            { }
         }
 
         public class GoldDig : Effect
@@ -231,6 +228,22 @@ namespace Lost_boy
                         adder(new GoldCoin(ship.Position, value));
                     };
             })
+            { }
+        }
+
+        public class SlowEffect : TemporaryEffect
+        {
+            public SlowEffect(int value)
+                : base(
+            ship =>
+                {
+                    ship.MaxSpeed -= value;
+                },
+            ship =>
+            {
+                ship.MaxSpeed += value;
+            },
+                5000)
             { }
         }
     }

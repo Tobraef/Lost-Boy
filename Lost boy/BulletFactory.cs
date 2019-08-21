@@ -50,5 +50,5 @@ namespace Lost_boy
             direction = dir;
         }
     }
-    
+
 }

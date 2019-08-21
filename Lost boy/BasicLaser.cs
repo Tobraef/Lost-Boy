@@ -46,10 +46,6 @@ namespace Lost_boy
         {
             this.size = Size;
             this.direction = dir;
-            this.onHits += new BurnChance(
-                VALUES.BASIC_LASER_BURN_DMG,
-                VALUES.BASIC_LASER_BURN_TICKS,
-                VALUES.BASIC_LASER_BURN_CHANCE);
             drawable = new Rectangle(Position.X, Position.Y, size.X, size.Y);
         }
     }

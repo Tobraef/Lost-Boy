@@ -32,16 +32,18 @@ namespace Lost_boy
             g.DrawRectangle(p, redRectangle);
         }
 
-        public void UpdatePosition(int dx)
+        public void UpdatePosition(int dx, int dy)
         {
             greenRectangle.X += dx;
+            greenRectangle.Y += dy;
             redRectangle.X += dx;
+            redRectangle.Y += dy;
         }
 
         public HPBar(IShip ship)
         {
             this.barLength = ship.Size.X;
-            this.maxHp = ship.Health;
+            this.maxHp = ship.MaxHealth;
             this.greenRectangle = new Rectangle(ship.Position.X,
                 ship.Position.Y - VALUES.HP_BAR_HEIGHT,
                 barLength,

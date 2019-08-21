@@ -10,7 +10,6 @@ namespace Lost_boy
 {
     public class BasicWeapon : IWeapon
     {
-        private int reloadTime;
         private event OnShot onShot;
 
         public void AppendOnShot(OnShot onShot)
@@ -30,6 +29,12 @@ namespace Lost_boy
             set;
         }
 
+        public int ReloadTime
+        {
+            get;
+            set;
+        }
+
         public IBullet GetBullet(Vector launchPosition)
         {
             IBullet bullet = Ammo.Create(launchPosition);
@@ -44,7 +49,7 @@ namespace Lost_boy
             Thread th = new Thread(() =>
             {
                 IsLoaded = false;
-                Thread.Sleep(this.reloadTime);
+                Thread.Sleep(this.ReloadTime);
                 IsLoaded = true;
             });
             th.Start();
@@ -54,7 +59,7 @@ namespace Lost_boy
         {
             this.Ammo = ammo;
             this.IsLoaded = true;
-            this.reloadTime = VALUES.BASIC_WEAPON_RELOAD_TIME;
+            this.ReloadTime = VALUES.BASIC_WEAPON_RELOAD_TIME;
         }
 
         public BasicWeapon(IBulletFactory ammo, List<OnShot> onShots)
@@ -65,7 +70,7 @@ namespace Lost_boy
             }
             this.Ammo = ammo;
             this.IsLoaded = true;
-            this.reloadTime = VALUES.BASIC_WEAPON_RELOAD_TIME;
+            this.ReloadTime = VALUES.BASIC_WEAPON_RELOAD_TIME;
         }
     }
 }
