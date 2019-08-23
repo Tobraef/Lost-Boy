@@ -20,7 +20,7 @@ namespace Lost_boy
             };
             timer.Start();
         }
-        
+
         public void ApplyStrategy(IShip ship)
         {
             if (ship.Position.X > circulationPointX)

@@ -52,7 +52,7 @@ namespace Lost_boy
             set;
         }
 
-        public int MaxSpeed 
+        public int MaxSpeed
         {
             get;
             set;
@@ -102,7 +102,7 @@ namespace Lost_boy
             Health += val;
             if (Health > MaxHealth)
                 Health = MaxHealth;
-            hpBar.HpChanged(-val);
+            hpBar.HpChanged(Health);
         }
 
         public override void Move()

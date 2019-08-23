@@ -171,9 +171,9 @@ namespace Lost_boy
             this.MovementStrategy = new NormalMovementStrategy();
             this.hpBar = new HPBar(this);
             this.onDeath += () =>
-                {
-                    MovementStrategy = null;
-                };
+            {
+                MovementStrategy = null;
+            };
         }
     }
 
@@ -226,7 +226,7 @@ namespace Lost_boy
         }
     }
 
-    public class TrickyEnemy: EnemyShip
+    public class TrickyEnemy : EnemyShip
     {
         private Mover playerShipWatcher;
         public override void SetDefaultMoveStrategy()

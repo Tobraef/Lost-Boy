@@ -23,6 +23,26 @@ namespace Lost_boy
         Up = -1,
         Down = 1
     }
+
+    public enum Difficulty : int
+    {
+        None,
+        Easy = 1,
+        Normal = 2,
+        Hard = 3
+    }
+
+    public enum LevelType
+    {
+        Classic
+    }
+
+    public enum DroppableSet
+    {
+        Low,
+        High
+    }
+
     public static class VALUES
     {
         public static Random random = new Random(5);
@@ -187,5 +207,56 @@ namespace Lost_boy
     {
         void ApplyStrategy(IShip m);
         void StopStrategy(IShip m);
+    }
+
+    public interface IPlayAble
+    {
+        event Action<bool> Finished;
+        void HandlePlayer(char key);
+        void HandlePlayer_KeyUp(char key);
+        void Begin();
+        void Elapse();
+        void Draw(Graphics g, Pen p);
+    }
+
+    public interface ILevel : IPlayAble
+    {
+        IMovementStrategy InitialMovementStrategy
+        {
+            set;
+        }
+        PlayerShip Player
+        {
+            set;
+        }
+        List<EnemyShip> Enemies
+        {
+            set;
+        }
+        DroppableSet Droppables
+        {
+            set;
+        }
+        string Description
+        {
+            set;
+            get;
+        }
+        Difficulty Difficulty
+        {
+            set;
+        }
+    }
+
+    public interface ILevelBuilder
+    {
+        ILevelBuilder SetDescription(string description);
+        ILevelBuilder SetPlayer(PlayerShip ship);
+        ILevelBuilder AppendEnemy(EnemyShip ship);
+        ILevelBuilder SetDroppable(DroppableSet set);
+        ILevelBuilder SetDifficulty(Difficulty difficulty);
+        ILevelBuilder SetInitialMovementStrategy(IMovementStrategy ms);
+        ILevel Build();
+
     }
 }

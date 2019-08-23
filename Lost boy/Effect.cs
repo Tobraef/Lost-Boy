@@ -160,7 +160,7 @@ namespace Lost_boy
                 heldFunction = projectile =>
                 {
                     projectile.Speed = new Vector(projectile.Speed.X,
-                        projectile.Speed.Y + (int)projectile.Direction*val);
+                        projectile.Speed.Y + (int)projectile.Direction * val);
                 };
             }
         }
@@ -236,9 +236,9 @@ namespace Lost_boy
             public SlowEffect(int value)
                 : base(
             ship =>
-                {
-                    ship.MaxSpeed -= value;
-                },
+            {
+                ship.MaxSpeed -= value;
+            },
             ship =>
             {
                 ship.MaxSpeed += value;
