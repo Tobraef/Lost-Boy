@@ -20,7 +20,7 @@ namespace Lost_boy
             };
             timer.Start();
         }
-
+        
         public void ApplyStrategy(IShip ship)
         {
             if (ship.Position.X > circulationPointX)
@@ -117,6 +117,46 @@ namespace Lost_boy
         public void StopStrategy(IShip ship)
         {
             ship.Speed = new Vector();
+        }
+    }
+
+    public class LevelInitialStrategy : IMovementStrategy
+    {
+        private int currentCount;
+        IEnumerator<KeyValuePair<Vector, int>> currentStep;
+        int delay;
+        public void ApplyStrategy(IShip m)
+        {
+            if (delay > 0)
+            {
+                delay--;
+                return;
+            }
+            if (currentCount > 0)
+            {
+                --currentCount;
+                return;
+            }
+            if (!currentStep.MoveNext())
+            {
+                ((EnemyShip)m).SetDefaultMoveStrategy();
+            }
+            else
+            {
+                currentCount = currentStep.Current.Value;
+                m.Speed = currentStep.Current.Key;
+            }
+        }
+
+        public void StopStrategy(IShip m)
+        {
+            currentStep = null;
+        }
+
+        public LevelInitialStrategy(IEnumerator<KeyValuePair<Vector,int>> iter, int delay)
+        {
+            currentStep = iter;
+            this.delay = delay;
         }
     }
 }

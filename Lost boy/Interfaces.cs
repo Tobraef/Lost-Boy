@@ -18,6 +18,17 @@ namespace Lost_boy
         public delegate void OnHit(IShip ship);
     }
 
+    namespace Enemies
+    {
+        public enum EnemyTypes
+        {
+            Casual,
+            Frosty,
+            Rocky,
+            Tricky
+        }
+    }
+
     public enum Direction : int
     {
         Up = -1,
@@ -26,21 +37,15 @@ namespace Lost_boy
 
     public enum Difficulty : int
     {
-        None,
-        Easy = 1,
-        Normal = 2,
-        Hard = 3
+        None ,
+        Easy ,
+        Normal ,
+        Hard
     }
 
     public enum LevelType
     {
         Classic
-    }
-
-    public enum DroppableSet
-    {
-        Low,
-        High
     }
 
     public static class VALUES
@@ -60,7 +65,7 @@ namespace Lost_boy
 
         public const int ENEMY_HEIGHT = 30;
         public const int ENEMY_WIDTH = 30;
-        public const int ENEMY_HEALTH = 30;
+        public const int ENEMY_HEALTH = 300;
         public const int ENEMY_FALLING_SPEED = 5;
 
         public const int TICK_INTERVAL = 3000; //milis
@@ -209,6 +214,36 @@ namespace Lost_boy
         void StopStrategy(IShip m);
     }
 
+    public interface IShopItem
+    {
+        int Price
+        {
+            get;
+            set;
+        }
+        int X
+        {
+            get;
+            set;
+        }
+        int Y
+        {
+            get;
+            set;
+        }
+        Vector Size
+        {
+            get;
+            set;
+        }
+        bool IsSelected(Vector mouse);
+        string Description
+        {
+            get;
+            set;
+        }
+    }
+
     public interface IPlayAble
     {
         event Action<bool> Finished;
@@ -221,10 +256,6 @@ namespace Lost_boy
 
     public interface ILevel : IPlayAble
     {
-        IMovementStrategy InitialMovementStrategy
-        {
-            set;
-        }
         PlayerShip Player
         {
             set;
@@ -233,29 +264,25 @@ namespace Lost_boy
         {
             set;
         }
-        DroppableSet Droppables
-        {
-            set;
-        }
         string Description
         {
             set;
             get;
         }
-        Difficulty Difficulty
-        {
-            set;
-        }
-    }
+        void AdjustToDifficulty(Difficulty diff);
+        void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff);
+}
 
     public interface ILevelBuilder
     {
         ILevelBuilder SetDescription(string description);
         ILevelBuilder SetPlayer(PlayerShip ship);
         ILevelBuilder AppendEnemy(EnemyShip ship);
-        ILevelBuilder SetDroppable(DroppableSet set);
+        ILevelBuilder CreateEnemy(Enemies.EnemyTypes type);
+        ILevelBuilder SetDroppable(Dictionary<Bonus, int> set);
         ILevelBuilder SetDifficulty(Difficulty difficulty);
-        ILevelBuilder SetInitialMovementStrategy(IMovementStrategy ms);
+        ILevelBuilder SetStrategyForCurrentEnemies(
+            Vector start, IEnumerable<KeyValuePair<Vector, int>> ms, int delay);
         ILevel Build();
 
     }

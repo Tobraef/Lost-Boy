@@ -152,9 +152,10 @@ namespace Lost_boy
         public bool IsHit(IProjectile projectile)
         {
             return
-                this.Position.Y + this.Size.Y > projectile.Position.Y &&
+                this.Position.X < projectile.Position.X + projectile.Size.X &&
                 this.Position.X + this.Size.X > projectile.Position.X &&
-                this.Position.X < projectile.Size.X + projectile.Position.X;
+                this.Position.Y < projectile.Position.Y + projectile.Size.Y &&
+                this.Position.Y + this.Size.Y > projectile.Position.Y;
         }
 
         public EnemyShip(Vector position) :
@@ -252,6 +253,25 @@ namespace Lost_boy
             this.ShootingChance = 90;
             this.Weapon.AppendOnShot(new OnShots.SpeedChange(15));
             this.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(5, 3, 50));
+            this.Health = MaxHealth;
+        }
+    }
+
+    public class CasualEnemy : EnemyShip
+    {
+        public override void SetDefaultMoveStrategy()
+        {
+            MovementStrategy = new NormalMovementStrategy();
+        }
+
+        public CasualEnemy(Vector position) :
+            base(position)
+        {
+            this.Defence = 10;
+            this.MaxHealth = VALUES.ENEMY_HEALTH;
+            this.MaxSpeed = 10;
+            this.color = Color.Chartreuse;
+            this.ShootingChance = 90;
             this.Health = MaxHealth;
         }
     }

@@ -9,18 +9,41 @@ namespace Lost_boy
 {
     public class LevelBuilder : ILevelBuilder
     {
-        ILevel lvl; 
+        private ILevel lvl;
+        private Difficulty difficulty;
+        PlayerShip player;
         private List<EnemyShip> enemies = new List<EnemyShip>();
-
-        public ILevelBuilder SetDroppable(DroppableSet set)
+        private List<EnemyShip> enemiesWithSetStrategies = new List<EnemyShip>();
+        private Dictionary<Bonus, int> drop = new Dictionary<Bonus, int>();
+        public ILevelBuilder SetDroppable(Dictionary<Bonus, int> set)
         {
-            this.lvl.Droppables = set;
+            this.drop = set;
             return this;
         }
 
         public ILevelBuilder AppendEnemy(EnemyShip ship)
         {
             enemies.Add(ship);
+            return this;
+        }
+
+        public ILevelBuilder CreateEnemy(Enemies.EnemyTypes type)
+        {
+            switch (type)
+            {
+                case Enemies.EnemyTypes.Casual:
+                    enemies.Add(new CasualEnemy(new Vector()));
+                    break;
+                case Enemies.EnemyTypes.Frosty:
+                    enemies.Add(new FrostyEnemy(new Vector()));
+                    break;
+                case Enemies.EnemyTypes.Rocky:
+                    enemies.Add(new RockyEnemy(new Vector()));
+                    break;
+                case Enemies.EnemyTypes.Tricky:
+                    enemies.Add(new TrickyEnemy(player, new Vector()));
+                    break;
+            }
             return this;
         }
 
@@ -32,25 +55,33 @@ namespace Lost_boy
 
         public ILevelBuilder SetDifficulty(Difficulty difficulty)
         {
-            this.lvl.Difficulty = difficulty;
+            this.difficulty = difficulty;
             return this;
         }
 
-        public ILevelBuilder SetInitialMovementStrategy(IMovementStrategy ms)
+        public ILevelBuilder SetStrategyForCurrentEnemies(Vector start, IEnumerable<KeyValuePair<Vector, int>> ms, int delay)
         {
-            this.lvl.InitialMovementStrategy = ms;
+            foreach (var enemy in enemies)
+            {
+                enemy.Teleport(start.X, start.Y);
+                enemy.MovementStrategy = new LevelInitialStrategy(ms.GetEnumerator(), delay);
+                delay += 5;
+            }
+            enemiesWithSetStrategies.AddRange(enemies);
+            enemies.Clear();
             return this;
         }
 
         public ILevelBuilder SetPlayer(PlayerShip player)
         {
             this.lvl.Player = player;
+            this.player = player;
             return this;
         }
 
         public LevelBuilder(LevelType type)
         {
-            switch(type)
+            switch (type)
             {
                 case LevelType.Classic:
                     lvl = new ClassicLevel("So classic");
@@ -60,7 +91,15 @@ namespace Lost_boy
 
         public ILevel Build()
         {
-            lvl.Enemies = enemies;
+            foreach (var enemy in enemies)
+            {
+                enemy.SetDefaultMoveStrategy();
+            }
+            enemiesWithSetStrategies.AddRange(enemies);
+            enemies.Clear();
+            lvl.Enemies = enemiesWithSetStrategies;
+            lvl.SetDroppables(drop, difficulty);
+            lvl.AdjustToDifficulty(difficulty);
             return lvl;
         }
     }
@@ -91,22 +130,41 @@ namespace Lost_boy
             private get;
         }
 
-        public DroppableSet Droppables
-        {
-            set;
-            private get;
-        }
-
         public string Description
         {
             get;
             set;
         }
 
-        public Difficulty Difficulty
+        public void AdjustToDifficulty(Difficulty diff)
         {
-            private get;
-            set;
+            switch (diff)
+            {
+                case Difficulty.None:
+                case Difficulty.Normal:
+                    break;
+                case Difficulty.Easy:
+                    foreach (var enemy in Enemies)
+                    {
+                        enemy.Defence /= 2;
+                        enemy.Health *= 3;
+                        enemy.Health /= 4;
+                        enemy.Weapon.Ammo.AppendDmgModifier((ref int damage) => 
+                        {
+                            damage *= 3;
+                            damage /= 4;
+                        });
+                    }
+                    break;
+                case Difficulty.Hard:
+                    foreach (var enemy in Enemies)
+                    {
+                        enemy.Health *= 3;
+                        enemy.Health /= 2;
+                        enemy.Weapon.Ammo.AppendDmgModifier((ref int damage) => damage *= 2);
+                    }
+                    break;
+            }
         }
 
         public void HandlePlayer(char key)
@@ -140,6 +198,26 @@ namespace Lost_boy
             }
         }
 
+        public void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff)
+        {
+            foreach (var enemy in Enemies)
+            {
+                foreach (var bonus in set)
+                {
+                    if (bonus.Value * (int)diff > VALUES.random.Next(100))
+                    {
+                        enemy.onDeath += () =>
+                        {
+                            EnemyBulletAdder(bonus.Key.Clone(enemy.Position
+                            + new Vector(VALUES.random.Next(-10, 10),
+                                        VALUES.random.Next(-10, 10)))); //offset
+                        };
+                    }
+                }
+                
+            }
+        }
+
         public void Elapse()
         {
             foreach (var enemy in Enemies)
@@ -156,15 +234,19 @@ namespace Lost_boy
                 enemy.Shoot();
                 foreach (var bullet in playersProjectiles)
                 {
-                    bullet.Move();
-                    if (bullet.Position.Y + bullet.Size.Y < 0)
-                    {
-                        toRemoveProjectiles.Add(bullet);
-                    }
-                    else if (enemy.IsHit(bullet))
+                    if (enemy.IsHit(bullet))
                     {
                         bullet.AffectShip(enemy);
                     }
+                }
+            }
+
+            foreach (var bullet in playersProjectiles)
+            {
+                bullet.Move();
+                if (bullet.Position.Y + bullet.Size.Y < 0)
+                {
+                    toRemoveProjectiles.Add(bullet);
                 }
             }
 
@@ -193,6 +275,8 @@ namespace Lost_boy
                 enemyProjectiles.Remove(bullet);
             }
             toRemoveProjectiles.Clear();
+            if (Enemies.Count + enemyProjectiles.Count == 0)
+                Finished(true);
         }
 
         public void Begin()
@@ -232,15 +316,6 @@ namespace Lost_boy
                 e.onDeath += () => toRemoveEnemies.Add(e);
                 e.onDeath += () =>
                 {
-                    var bonus = GetRandomBonus(e.Position);
-                    if (bonus != null)
-                    {
-                        bonus.onDeath += () => this.toRemoveProjectiles.Add(bonus);
-                        enemyProjectiles.Add(bonus);
-                    }
-                };
-                e.onDeath += () =>
-                {
                     if (VALUES.GOLD_DROP_CHANCE > VALUES.random.Next(100))
                     {
                         var bonus = new GoldCoin(e.Position, VALUES.GOLD_AVERAGE_VALUE);
@@ -251,51 +326,11 @@ namespace Lost_boy
                         enemyProjectiles.Add(bonus);
                     }
                 };
-                e.MovementStrategy = InitialMovementStrategy;
             }
-            Thread th = new Thread(() =>
-            {
-                Thread.Sleep(5000);
-                List<EnemyShip> ships = Enemies;
-                foreach (var ship in ships)
-                {
-                    ship.SetDefaultMoveStrategy();
-                }
-            });
-            th.Start();
-        }
-
-        private Bonus GetRandomBonus(Vector position)
-        {
-            if (VALUES.BONUS_DROP_CHANCE * (int)Difficulty > VALUES.random.Next(100))
-            switch (Droppables)
-            {
-                case DroppableSet.Low:
-                case DroppableSet.High:
-                        switch(VALUES.random.Next(1,6))
-                        {
-                            case 1:
-                                return new BulletSizeChangeBonus(position);
-                            case 2:
-                                return new BulletSpeedBonus(position);
-                            case 3:
-                                return new BurnBonus(position);
-                            case 4:
-                                return new HealthBonus(position);
-                            case 5:
-                                return new LaserDamageBonus(position);
-                            case 6:
-                                return new WeaponReloadTimeBonus(position);
-                        }
-                        break;
-            }
-            return null;
         }
 
         public ClassicLevel(string s)
         {
         }
     }
-
-    //TODO IMPLEMENT public class DroppableSetOfItems 
 }

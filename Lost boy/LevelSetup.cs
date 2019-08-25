@@ -13,16 +13,16 @@ namespace Lost_boy
         {
             private readonly string levelDescription;
             private int levelId;
-            private int currentRoadId;
-            private int maxSpeed = 25;
+            private int maxSpeed = 10;
             private Vector currentPoint;
             private Color currentColor = Color.Blue;
             private List<KeyValuePair<Vector, int>> currentRoad = new List<KeyValuePair<Vector, int>>();
-            private readonly Dictionary<int, List<KeyValuePair<Vector, int>>> roadsToIds = new Dictionary<int, List<KeyValuePair<Vector, int>>>();
+            private readonly Dictionary<Vector, List<KeyValuePair<Vector, int>>> roadsToStarts = 
+                new Dictionary<Vector, List<KeyValuePair<Vector, int>>>();
 
-            private  List<KeyValuePair<Point, Point>> currentDrawable = new List<KeyValuePair<Point, Point>>();
+            private List<KeyValuePair<Point, Point>> currentDrawable = new List<KeyValuePair<Point, Point>>();
             private readonly List<List<KeyValuePair<Point, Point>>> drawables = new List<List<KeyValuePair<Point, Point>>>();
-            
+
             private void NextColor()
             {
                 if (currentColor == Color.Blue)
@@ -35,15 +35,20 @@ namespace Lost_boy
                     currentColor = Color.Blue;
             }
 
+            public Dictionary<Vector, List<KeyValuePair<Vector, int>>> GetRoads()
+            {
+                return roadsToStarts;
+            }
+
             public void CloseRoad()
             {
-                roadsToIds.Add(++currentRoadId, currentRoad);
                 currentDrawable = new List<KeyValuePair<Point, Point>>();
                 currentRoad = new List<KeyValuePair<Vector, int>>();
             }
 
             public void BeginRoad(Vector where)
             {
+                roadsToStarts.Add(where, currentRoad);
                 currentPoint = where;
                 currentDrawable.Add(new KeyValuePair<Point, Point>(where, where));
                 drawables.Add(currentDrawable);

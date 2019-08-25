@@ -20,7 +20,7 @@ namespace Lost_boy
             set;
         }
 
-        public Vector(int x, int y)
+        public Vector(int x, int y) : this()
         {
             X = x;
             Y = y;
@@ -59,6 +59,11 @@ namespace Lost_boy
         public static implicit operator System.Drawing.Point(Vector v)
         {
             return new System.Drawing.Point(v.X, v.Y);
+        }
+
+        public override string ToString()
+        {
+            return "X = " + X + ", Y = " + Y;
         }
     }
 }

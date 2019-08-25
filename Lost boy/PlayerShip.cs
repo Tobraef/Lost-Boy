@@ -68,6 +68,7 @@ namespace Lost_boy
 
         public void TakeDamage(int val)
         {
+            Console.WriteLine(val);
             onDamageTaken(ref val);
             if (val > 0)
             {
@@ -116,9 +117,10 @@ namespace Lost_boy
         public bool IsHit(IProjectile projectile)
         {
             return
-                this.Position.Y < projectile.Position.Y + projectile.Size.Y &&
+                this.Position.X < projectile.Position.X + projectile.Size.X &&
                 this.Position.X + this.Size.X > projectile.Position.X &&
-                this.Position.X < projectile.Size.X + projectile.Position.X;
+                this.Position.Y < projectile.Position.Y + projectile.Size.Y &&
+                this.Position.Y + this.Size.Y > projectile.Position.Y;
         }
 
         public PlayerShip() :

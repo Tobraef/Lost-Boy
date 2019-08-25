@@ -12,10 +12,14 @@ namespace Lost_boy
 {
     public partial class Form1 : Form
     {
+        Dictionary<Bonus, int> drop = new Dictionary<Bonus,int>();
+        bool LevelSetup = true;
         IPlayAble level;
         PlayerShip player;
         Timer timer;
         Setup.LevelSetup setup;
+        Dictionary<Vector, List<KeyValuePair<Vector, int>>> roads = 
+            new Dictionary<Vector, List<KeyValuePair<Vector, int>>>();
         private void KeyHandle(object sender, KeyEventArgs args)
         {
             switch (args.KeyCode)
@@ -28,6 +32,16 @@ namespace Lost_boy
                     break;
                 case Keys.S:
                     level.HandlePlayer('S');
+                    break;
+                case Keys.L:
+                    if (setup != null)
+                        setup.BeginRoad(new Vector(MousePosition.X, MousePosition.Y));
+                    break;
+                case Keys.Space:
+                    var r = setup.GetRoads();
+                    foreach (var road in r)
+                        roads.Add(road.Key, road.Value);
+                    InitializeLevel();
                     break;
             }
         }
@@ -44,9 +58,11 @@ namespace Lost_boy
                     break;
             }
         }
-
+        
         private void MousePop(object sender, MouseEventArgs m)
         {
+            if (setup == null)
+                return;
             switch (m.Button)
             {
                 case MouseButtons.Left:
@@ -64,7 +80,7 @@ namespace Lost_boy
         void Elapse(object sender, EventArgs e)
         {
             if (setup == null)
-            level.Elapse();
+                level.Elapse();
             this.Refresh();
         }
 
@@ -77,7 +93,6 @@ namespace Lost_boy
             else
                 setup.Draw(g, p);
         }
-        
 
         private void InitializePlayer()
         {
@@ -102,11 +117,41 @@ namespace Lost_boy
             };
         }
 
+        private Dictionary<Bonus, int> GetTestDrop()
+        {
+            Dictionary<Bonus, int> drop = new Dictionary<Bonus, int>();
+            drop.Add(new BulletSizeChangeBonus(new Vector()), 10);
+            drop.Add(new BulletSpeedBonus(new Vector()), 10);
+            drop.Add(new BurnBonus(new Vector()), 10);
+            drop.Add(new HealthBonus(new Vector()), 10);
+            drop.Add(new LaserDamageBonus(new Vector()), 10);
+            drop.Add(new WeaponReloadTimeBonus(new Vector()), 10);
+            return drop;
+        }
+
+        private void InitializeLevel()
+        {
+            setup = null;
+            ILevelBuilder builder = new LevelBuilder(LevelType.Classic);
+            level = builder
+                .SetPlayer(player)
+                .SetDescription("Testing level")
+                .SetDifficulty(Difficulty.Easy)
+                .SetDroppable(GetTestDrop())
+                .CreateEnemy(Enemies.EnemyTypes.Casual)
+                .CreateEnemy(Enemies.EnemyTypes.Casual)
+                .CreateEnemy(Enemies.EnemyTypes.Casual)
+                .CreateEnemy(Enemies.EnemyTypes.Casual)
+                .SetStrategyForCurrentEnemies(
+                    roads.First().Key, roads.First().Value, 10)
+                .Build();
+            level.Begin();
+        }
+
         public Form1()
         {
-            bool LevelSetup = true;
             InitializeComponent();
-           
+
             this.BackColor = Color.Black;
             this.Size = new Size(VALUES.WIDTH, VALUES.HEIGHT + 200);
             if (LevelSetup)
@@ -119,18 +164,6 @@ namespace Lost_boy
             this.KeyDown += KeyHandle;
             this.KeyUp += KeyUps;
             this.Paint += PaintGame;
-
-            ILevelBuilder builder = new LevelBuilder(LevelType.Classic);
-            builder
-                .SetPlayer(player)
-                .SetDescription("Testing level")
-                .SetDifficulty(Difficulty.Hard)
-                .SetDroppable(DroppableSet.Low)
-                .SetInitialMovementStrategy(new NormalMovementStrategy());
-            foreach (var e in es)
-                builder.AppendEnemy(e);
-            level = builder.Build();
-            level.Begin();
             timer = new Timer();
             timer.Interval = 100;
             timer.Tick += new EventHandler(Elapse);

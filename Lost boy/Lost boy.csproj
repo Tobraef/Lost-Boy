@@ -53,6 +53,7 @@
     <Compile Include="BulletFactory.cs" />
     <Compile Include="EnemyShip.cs" />
     <Compile Include="GoldCoin.cs" />
+    <Compile Include="Grocery.cs" />
     <Compile Include="HPBar.cs" />
     <Compile Include="Laser.cs" />
     <Compile Include="Effect.cs" />
@@ -63,6 +64,8 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Interfaces.cs" />
+    <Compile Include="Level.cs" />
+    <Compile Include="LevelSetup.cs" />
     <Compile Include="MovementStrategy.cs" />
     <Compile Include="Mover.cs" />
     <Compile Include="PlayerShip.cs" />

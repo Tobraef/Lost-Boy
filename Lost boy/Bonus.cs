@@ -7,7 +7,7 @@ using System.Drawing;
 
 namespace Lost_boy
 {
-    public class Bonus : Mover, IProjectile
+    public abstract class Bonus : Mover, IProjectile
     {
         private Rectangle drawable;
         protected Color color = Color.Blue;
@@ -38,6 +38,8 @@ namespace Lost_boy
             g.DrawRectangle(p, drawable);
         }
 
+        public abstract Bonus Clone(Vector position);
+
         public Bonus(Vector position, Action<IShip> e) :
             base(
             position,
@@ -52,6 +54,11 @@ namespace Lost_boy
 
     public class BulletSpeedBonus : Bonus
     {
+        public override Bonus Clone(Vector position)
+        {
+            return new BulletSpeedBonus(position);
+        }
+
         public BulletSpeedBonus(Vector position) :
             base(position,
             ship =>
@@ -65,6 +72,11 @@ namespace Lost_boy
 
     public class LaserDamageBonus : Bonus
     {
+        public override Bonus Clone(Vector position)
+        {
+            return new LaserDamageBonus(position);
+        }
+
         public LaserDamageBonus(Vector position) :
             base(position,
             ship =>
@@ -81,6 +93,11 @@ namespace Lost_boy
 
     public class BulletSizeChangeBonus : Bonus
     {
+        public override Bonus Clone(Vector position)
+        {
+            return new BulletSizeChangeBonus(position);
+        }
+
         public BulletSizeChangeBonus(Vector position) :
             base(position,
             ship =>
@@ -94,6 +111,11 @@ namespace Lost_boy
 
     public class BurnBonus : Bonus
     {
+        public override Bonus Clone(Vector position)
+        {
+            return new BurnBonus(position);
+        }
+
         public BurnBonus(Vector position) :
             base(position,
             ship =>
@@ -107,11 +129,20 @@ namespace Lost_boy
 
     public class WeaponReloadTimeBonus : Bonus
     {
+        public override Bonus Clone(Vector position)
+        {
+            return new WeaponReloadTimeBonus(position);
+        }
+
         public WeaponReloadTimeBonus(Vector position) :
             base(position,
             ship =>
             {
                 ship.Weapon.ReloadTime -= 500;
+                if (ship.Weapon.ReloadTime < 50)
+                {
+                    ship.Weapon.ReloadTime = 50;
+                }
             })
         {
             this.color = Color.Gray;
@@ -120,6 +151,11 @@ namespace Lost_boy
 
     public class HealthBonus : Bonus
     {
+        public override Bonus Clone(Vector position)
+        {
+            return new HealthBonus(position);
+        }
+
         public HealthBonus(Vector position) :
             base(position,
             ship =>

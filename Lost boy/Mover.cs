@@ -8,7 +8,6 @@ namespace Lost_boy
 {
     public abstract class Mover : IMover
     {
-
         public Vector Position
         {
             get;
@@ -40,6 +39,13 @@ namespace Lost_boy
         }
 
         public abstract void Draw(Graphics g, Pen p);
+
+        public override string ToString()
+        {
+            return
+                "Position " + Position.ToString() + '\n' +
+                "Speed " + Speed.ToString() + '\n';
+        }
 
         public Mover(Vector pos, Vector speed, Vector acc, Vector size)
         {
