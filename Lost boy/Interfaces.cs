@@ -37,9 +37,9 @@ namespace Lost_boy
 
     public enum Difficulty : int
     {
-        None ,
-        Easy ,
-        Normal ,
+        None,
+        Easy,
+        Normal,
         Hard
     }
 
@@ -271,7 +271,7 @@ namespace Lost_boy
         }
         void AdjustToDifficulty(Difficulty diff);
         void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff);
-}
+    }
 
     public interface ILevelBuilder
     {

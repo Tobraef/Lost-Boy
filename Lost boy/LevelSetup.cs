@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.IO;
 
 namespace Lost_boy
 {
@@ -17,8 +18,9 @@ namespace Lost_boy
             private Vector currentPoint;
             private Color currentColor = Color.Blue;
             private List<KeyValuePair<Vector, int>> currentRoad = new List<KeyValuePair<Vector, int>>();
-            private readonly Dictionary<Vector, List<KeyValuePair<Vector, int>>> roadsToStarts = 
-                new Dictionary<Vector, List<KeyValuePair<Vector, int>>>();
+            private readonly List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> roadsToStarts =
+                new List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>>();
+            private readonly List<List<EnemyShip>> enemyShips = new List<List<EnemyShip>>();
 
             private List<KeyValuePair<Point, Point>> currentDrawable = new List<KeyValuePair<Point, Point>>();
             private readonly List<List<KeyValuePair<Point, Point>>> drawables = new List<List<KeyValuePair<Point, Point>>>();
@@ -35,20 +37,27 @@ namespace Lost_boy
                     currentColor = Color.Blue;
             }
 
-            public Dictionary<Vector, List<KeyValuePair<Vector, int>>> GetRoads()
+            public List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> GetRoads()
             {
                 return roadsToStarts;
             }
 
-            public void CloseRoad()
+            public List<List<EnemyShip>> GetEnemies()
+            {
+                return enemyShips;
+            }
+
+            public KeyValuePair<Vector, List<KeyValuePair<Vector, int>>> CloseRoad()
             {
                 currentDrawable = new List<KeyValuePair<Point, Point>>();
                 currentRoad = new List<KeyValuePair<Vector, int>>();
+                return roadsToStarts.Last();
             }
 
             public void BeginRoad(Vector where)
             {
-                roadsToStarts.Add(where, currentRoad);
+                enemyShips.Add(new List<EnemyShip>());
+                roadsToStarts.Add(new KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>(where, currentRoad));
                 currentPoint = where;
                 currentDrawable.Add(new KeyValuePair<Point, Point>(where, where));
                 drawables.Add(currentDrawable);
@@ -76,6 +85,15 @@ namespace Lost_boy
                     NextColor();
                 }
                 currentColor = Color.Blue;
+            }
+
+            public void AppendEnemyToRoad(EnemyShip enemy)
+            {
+                enemyShips.Last().Add(enemy);
+            }
+
+            public LevelSetup()
+            {
             }
         }
     }

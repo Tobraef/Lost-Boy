@@ -12,14 +12,14 @@ namespace Lost_boy
 {
     public partial class Form1 : Form
     {
-        Dictionary<Bonus, int> drop = new Dictionary<Bonus,int>();
+        Dictionary<Bonus, int> drop = new Dictionary<Bonus, int>();
         bool LevelSetup = true;
         IPlayAble level;
         PlayerShip player;
         Timer timer;
         Setup.LevelSetup setup;
-        Dictionary<Vector, List<KeyValuePair<Vector, int>>> roads = 
-            new Dictionary<Vector, List<KeyValuePair<Vector, int>>>();
+        private string instructions;
+        ILevelBuilder builder;
         private void KeyHandle(object sender, KeyEventArgs args)
         {
             switch (args.KeyCode)
@@ -33,15 +33,31 @@ namespace Lost_boy
                 case Keys.S:
                     level.HandlePlayer('S');
                     break;
-                case Keys.L:
-                    if (setup != null)
-                        setup.BeginRoad(new Vector(MousePosition.X, MousePosition.Y));
+                default:
                     break;
+            }
+        }
+
+        private void SetupKeyHandle(object sender, KeyEventArgs args)
+        {
+            switch (args.KeyCode)
+            {
+                case Keys.D1:
+                    builder.CreateEnemy(Enemies.EnemyTypes.Casual);
+                    break;
+                case Keys.D2:
+                    builder.CreateEnemy(Enemies.EnemyTypes.Frosty);
+                    break;
+                case Keys.D3:
+                    builder.CreateEnemy(Enemies.EnemyTypes.Tricky);
+                    break;
+                case Keys.D4:
+                    builder.CreateEnemy(Enemies.EnemyTypes.Rocky);
+                    break;
+
                 case Keys.Space:
-                    var r = setup.GetRoads();
-                    foreach (var road in r)
-                        roads.Add(road.Key, road.Value);
-                    InitializeLevel();
+                    break;
+                default:
                     break;
             }
         }
@@ -58,7 +74,7 @@ namespace Lost_boy
                     break;
             }
         }
-        
+
         private void MousePop(object sender, MouseEventArgs m)
         {
             if (setup == null)
@@ -91,7 +107,10 @@ namespace Lost_boy
             if (setup == null)
                 level.Draw(g, p);
             else
+            {
                 setup.Draw(g, p);
+                g.DrawString(instructions, new Font("Arial", 14), new SolidBrush(Color.White), new PointF(10, 10));
+            }
         }
 
         private void InitializePlayer()
@@ -129,38 +148,36 @@ namespace Lost_boy
             return drop;
         }
 
-        private void InitializeLevel()
+        private void InitializeLevelBuild()
         {
-            setup = null;
-            ILevelBuilder builder = new LevelBuilder(LevelType.Classic);
-            level = builder
+            builder = new LevelBuilder(LevelType.Classic);
+            builder
                 .SetPlayer(player)
-                .SetDescription("Testing level")
-                .SetDifficulty(Difficulty.Easy)
-                .SetDroppable(GetTestDrop())
-                .CreateEnemy(Enemies.EnemyTypes.Casual)
-                .CreateEnemy(Enemies.EnemyTypes.Casual)
-                .CreateEnemy(Enemies.EnemyTypes.Casual)
-                .CreateEnemy(Enemies.EnemyTypes.Casual)
-                .SetStrategyForCurrentEnemies(
-                    roads.First().Key, roads.First().Value, 10)
-                .Build();
-            level.Begin();
+                .SetDescription("Testing level");
+        }
+
+        private void SaveLevelToFile(string name)
+        {
+
         }
 
         public Form1()
         {
             InitializeComponent();
-
             this.BackColor = Color.Black;
             this.Size = new Size(VALUES.WIDTH, VALUES.HEIGHT + 200);
             if (LevelSetup)
             {
+                instructions =
+                    "1,2,3,4 - enemies\n" +
+                    "5,6,7 - difficulties\n" +
+                    "Mouse - mid = begin, left = note point, right = close";
                 setup = new Setup.LevelSetup();
                 this.MouseClick += new MouseEventHandler(MousePop);
+                this.KeyDown += SetupKeyHandle;
+                InitializeLevelBuild();
             }
             InitializePlayer();
-            var es = this.GetTestEnemy();
             this.KeyDown += KeyHandle;
             this.KeyUp += KeyUps;
             this.Paint += PaintGame;
