@@ -27,6 +27,12 @@ namespace Lost_boy
             return this;
         }
 
+        public ILevelBuilder SetEnemyGroup(List<EnemyShip> group)
+        {
+            enemies.AddRange(group);
+            return this;
+        }
+
         public ILevelBuilder CreateEnemy(Enemies.EnemyTypes type)
         {
             switch (type)
@@ -149,7 +155,7 @@ namespace Lost_boy
                         enemy.Defence /= 2;
                         enemy.Health *= 3;
                         enemy.Health /= 4;
-                        enemy.Weapon.Ammo.AppendDmgModifier((ref int damage) =>
+                        enemy.Weapon.Ammo.AppendDmgModifier((ref int damage) => 
                         {
                             damage *= 3;
                             damage /= 4;
@@ -214,7 +220,7 @@ namespace Lost_boy
                         };
                     }
                 }
-
+                
             }
         }
 

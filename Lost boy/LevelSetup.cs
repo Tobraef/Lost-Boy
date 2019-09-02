@@ -20,7 +20,7 @@ namespace Lost_boy
             private List<KeyValuePair<Vector, int>> currentRoad = new List<KeyValuePair<Vector, int>>();
             private readonly List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> roadsToStarts =
                 new List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>>();
-            private readonly List<List<EnemyShip>> enemyShips = new List<List<EnemyShip>>();
+            private readonly List<List<string>> enemyShips = new List<List<string>>();
 
             private List<KeyValuePair<Point, Point>> currentDrawable = new List<KeyValuePair<Point, Point>>();
             private readonly List<List<KeyValuePair<Point, Point>>> drawables = new List<List<KeyValuePair<Point, Point>>>();
@@ -44,7 +44,15 @@ namespace Lost_boy
 
             public List<List<EnemyShip>> GetEnemies()
             {
-                return enemyShips;
+                List<List<EnemyShip>> toRet = new List<List<EnemyShip>>();
+                foreach (var eGroup in enemyShips)
+                {
+                    toRet.Add(new List<EnemyShip>(eGroup.Select(name =>
+                        {
+                            return ParseEnemy(name, null);
+                        })));
+                }
+                return toRet;
             }
 
             public KeyValuePair<Vector, List<KeyValuePair<Vector, int>>> CloseRoad()
@@ -56,7 +64,7 @@ namespace Lost_boy
 
             public void BeginRoad(Vector where)
             {
-                enemyShips.Add(new List<EnemyShip>());
+                enemyShips.Add(new List<string>());
                 roadsToStarts.Add(new KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>(where, currentRoad));
                 currentPoint = where;
                 currentDrawable.Add(new KeyValuePair<Point, Point>(where, where));
@@ -87,9 +95,84 @@ namespace Lost_boy
                 currentColor = Color.Blue;
             }
 
-            public void AppendEnemyToRoad(EnemyShip enemy)
+            public void AppendEnemyToRoad(Enemies.EnemyTypes enemy)
             {
-                enemyShips.Last().Add(enemy);
+                enemyShips.Last().Add(enemy.ToString());
+            }
+
+            public void SaveLevelToFile(string fileName)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (var eGroup in enemyShips)
+                {
+                    sb.AppendLine(String.Join(" ", eGroup));
+                }
+
+                sb.AppendLine("---");
+
+                foreach (var rToS in roadsToStarts)
+                {
+                    sb.AppendLine(rToS.Key.ToString());
+                    foreach(var road in rToS.Value)
+                    {
+                        sb.AppendFormat("{0} {1} {2}", road.Key.X, road.Key.Y, road.Value);
+                        sb.AppendLine();
+                    }
+                }
+
+                sb.AppendLine("===");
+                File.AppendAllText(fileName, sb.ToString());
+            }
+
+            private EnemyShip ParseEnemy(string txt, PlayerShip p)
+            {
+                switch (txt)
+                {
+                case "Casual":
+                    return new CasualEnemy(new Vector());
+                case "Frosty":
+                    return new FrostyEnemy(new Vector());
+                case "Rocky":
+                    return new RockyEnemy(new Vector());
+                case "Tricky":
+                    return new TrickyEnemy(p, new Vector());
+                }
+                return null;
+            }
+
+            public void SetFromFile(string fileName, PlayerShip p)
+            {
+                var lines = File.ReadLines(fileName);
+                var iter = lines.GetEnumerator();
+                while (iter.MoveNext())
+                {
+                    if (iter.Current == "---")
+                        break;
+                    enemyShips.Add(new List<string>());
+                    enemyShips.Last().AddRange(iter.Current
+                        .Split(' '));
+                }
+                List<KeyValuePair<Vector, int>> road = null;
+                while(iter.MoveNext())
+                {
+                    var txt = iter.Current.Split(' ');
+                    if (txt.Equals("==="))
+                        return;
+                    if (txt.Length != 3)
+                    {
+                        road = new List<KeyValuePair<Vector, int>>();
+                        roadsToStarts.Add(
+                            new KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>
+                            (new Vector(Int32.Parse(txt[2]), Int32.Parse(txt[5])),
+                            road));
+                    }
+                    else
+                    {
+                        road.Add(new KeyValuePair<Vector,int>
+                            (new Vector(Int32.Parse(txt[0]), Int32.Parse(txt[1])),
+                                Int32.Parse(txt[2])));
+                    }
+                }
             }
 
             public LevelSetup()

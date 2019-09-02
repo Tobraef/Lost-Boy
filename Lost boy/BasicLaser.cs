@@ -11,7 +11,6 @@ namespace Lost_boy
     public class BasicLaser : Laser
     {
         private Rectangle drawable;
-        private Color color = Color.Red;
         private Vector size;
 
         public override Vector Size
@@ -30,7 +29,7 @@ namespace Lost_boy
 
         public override void Draw(Graphics g, Pen p)
         {
-            p.Color = color;
+            p.Color = Color;
             g.DrawRectangle(p, drawable);
         }
 

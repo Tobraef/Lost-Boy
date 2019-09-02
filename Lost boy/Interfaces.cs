@@ -10,7 +10,7 @@ namespace Lost_boy
     public delegate void Modify(ref int i);
     namespace OnShots
     {
-        public delegate void OnShot(IProjectile p);
+        public delegate void OnShot(IBullet p);
     }
 
     namespace OnHits
@@ -37,9 +37,9 @@ namespace Lost_boy
 
     public enum Difficulty : int
     {
-        None,
-        Easy,
-        Normal,
+        None ,
+        Easy ,
+        Normal ,
         Hard
     }
 
@@ -65,7 +65,7 @@ namespace Lost_boy
 
         public const int ENEMY_HEIGHT = 30;
         public const int ENEMY_WIDTH = 30;
-        public const int ENEMY_HEALTH = 300;
+        public const int ENEMY_HEALTH = 100;
         public const int ENEMY_FALLING_SPEED = 5;
 
         public const int TICK_INTERVAL = 3000; //milis
@@ -133,6 +133,11 @@ namespace Lost_boy
 
     public interface IBullet : IProjectile
     {
+        Color Color
+        {
+            set;
+            get;
+        }
         event Modify dmgModifiers;
         int Damage
         {
@@ -271,7 +276,7 @@ namespace Lost_boy
         }
         void AdjustToDifficulty(Difficulty diff);
         void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff);
-    }
+}
 
     public interface ILevelBuilder
     {
@@ -283,6 +288,7 @@ namespace Lost_boy
         ILevelBuilder SetDifficulty(Difficulty difficulty);
         ILevelBuilder SetStrategyForCurrentEnemies(
             Vector start, IEnumerable<KeyValuePair<Vector, int>> ms, int delay);
+        ILevelBuilder SetEnemyGroup(List<EnemyShip> group);
         ILevel Build();
 
     }

@@ -20,7 +20,7 @@ namespace Lost_boy
             };
             timer.Start();
         }
-
+        
         public void ApplyStrategy(IShip ship)
         {
             if (ship.Position.X > circulationPointX)
@@ -153,7 +153,7 @@ namespace Lost_boy
             currentStep = null;
         }
 
-        public LevelInitialStrategy(IEnumerator<KeyValuePair<Vector, int>> iter, int delay)
+        public LevelInitialStrategy(IEnumerator<KeyValuePair<Vector,int>> iter, int delay)
         {
             currentStep = iter;
             this.delay = delay;

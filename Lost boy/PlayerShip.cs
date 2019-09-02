@@ -68,7 +68,6 @@ namespace Lost_boy
 
         public void TakeDamage(int val)
         {
-            Console.WriteLine(val);
             onDamageTaken(ref val);
             if (val > 0)
             {

@@ -185,6 +185,11 @@ namespace Lost_boy
             MovementStrategy = null;
         }
 
+        public override string ToString()
+        {
+            return base.ToString() + "Rocky";
+        }
+
         public RockyEnemy(Vector position) :
             base(position)
         {
@@ -195,6 +200,7 @@ namespace Lost_boy
             this.color = Color.Brown;
             this.MaxSpeed = 5;
             this.ShootingChance = 25;
+            this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
             this.Weapon.AppendOnShot(new OnShots.SizeChange(10));
             this.Weapon.AppendOnShot(new OnShots.SpeedChange(-5));
             this.Weapon.Ammo.AppendDmgModifier((ref int val) =>
@@ -212,6 +218,11 @@ namespace Lost_boy
             MovementStrategy = new NormalMovementStrategy();
         }
 
+        public override string ToString()
+        {
+            return base.ToString() + "Frosty";
+        }
+
         public FrostyEnemy(Vector position) :
             base(position)
         {
@@ -222,6 +233,7 @@ namespace Lost_boy
             this.color = Color.Blue;
             this.ShootingChance = 75;
             this.Weapon.AppendOnShot(new OnShots.SpeedChange(5));
+            this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
             this.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(5));
             this.Health = MaxHealth;
         }
@@ -242,6 +254,11 @@ namespace Lost_boy
                 base.Shoot();
         }
 
+        public override string ToString()
+        {
+            return base.ToString() + "Tricky";
+        }
+
         public TrickyEnemy(Mover playerShip, Vector position) :
             base(position)
         {
@@ -252,6 +269,7 @@ namespace Lost_boy
             this.color = Color.DeepPink;
             this.ShootingChance = 90;
             this.Weapon.AppendOnShot(new OnShots.SpeedChange(15));
+            this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
             this.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(5, 3, 50));
             this.Health = MaxHealth;
         }
@@ -264,13 +282,19 @@ namespace Lost_boy
             MovementStrategy = new NormalMovementStrategy();
         }
 
+        public override string ToString()
+        {
+            return base.ToString() + "Casual";
+        }
+
         public CasualEnemy(Vector position) :
             base(position)
         {
-            this.Defence = 10;
+            this.Defence = 5;
             this.MaxHealth = VALUES.ENEMY_HEALTH;
             this.MaxSpeed = 10;
             this.color = Color.Chartreuse;
+            this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
             this.ShootingChance = 90;
             this.Health = MaxHealth;
         }

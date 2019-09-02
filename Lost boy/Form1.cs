@@ -14,6 +14,7 @@ namespace Lost_boy
     {
         Dictionary<Bonus, int> drop = new Dictionary<Bonus, int>();
         bool LevelSetup = true;
+        List<IPlayAble> levels = new List<IPlayAble>();
         IPlayAble level;
         PlayerShip player;
         Timer timer;
@@ -43,19 +44,26 @@ namespace Lost_boy
             switch (args.KeyCode)
             {
                 case Keys.D1:
-                    builder.CreateEnemy(Enemies.EnemyTypes.Casual);
+                    setup.AppendEnemyToRoad(Enemies.EnemyTypes.Casual);
                     break;
                 case Keys.D2:
-                    builder.CreateEnemy(Enemies.EnemyTypes.Frosty);
+                    setup.AppendEnemyToRoad(Enemies.EnemyTypes.Frosty);
                     break;
                 case Keys.D3:
-                    builder.CreateEnemy(Enemies.EnemyTypes.Tricky);
+                    setup.AppendEnemyToRoad(Enemies.EnemyTypes.Tricky);
                     break;
                 case Keys.D4:
-                    builder.CreateEnemy(Enemies.EnemyTypes.Rocky);
+                    setup.AppendEnemyToRoad(Enemies.EnemyTypes.Rocky);
                     break;
-
                 case Keys.Space:
+                    setup.SaveLevelToFile(@"E:\bedzie\Stworzone aplikacje c++\Lost boy\LevelFile.txt");
+                    break;
+                case Keys.Tab:
+                    setup.SetFromFile(@"E:\bedzie\Stworzone aplikacje c++\Lost boy\LevelFile.txt", player);
+                    SetLevels();
+                    break;
+                case Keys.R:
+                    PLAY();
                     break;
                 default:
                     break;
@@ -93,14 +101,14 @@ namespace Lost_boy
             }
         }
 
-        void Elapse(object sender, EventArgs e)
+        private void Elapse(object sender, EventArgs e)
         {
             if (setup == null)
                 level.Elapse();
             this.Refresh();
         }
 
-        void PaintGame(object sender, PaintEventArgs e)
+        private void PaintGame(object sender, PaintEventArgs e)
         {
             var g = e.Graphics;
             Pen p = new Pen(Color.Black);
@@ -113,9 +121,29 @@ namespace Lost_boy
             }
         }
 
+        private void SetLevels()
+        {
+            var enemiesIter = setup.GetEnemies().GetEnumerator();
+            var roadsToStartsIter = setup.GetRoads().GetEnumerator();
+            builder = new LevelBuilder(LevelType.Classic);
+                builder
+                    .SetPlayer(player)
+                    .SetDescription("Testing level")
+                    .SetDifficulty(Difficulty.Normal)
+                    .SetDroppable(GetTestDrop());
+            while (enemiesIter.MoveNext() && roadsToStartsIter.MoveNext())
+            {
+                builder
+                    .SetEnemyGroup(enemiesIter.Current)
+                    .SetStrategyForCurrentEnemies(roadsToStartsIter.Current.Key, roadsToStartsIter.Current.Value, 5);
+            }
+            levels.Add(builder.Build());
+        }
+
         private void InitializePlayer()
         {
             player = new PlayerShip();
+            player.Weapon.AppendOnShot(new OnShots.ColorChage(Color.Peru));
             player.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(10, 3, 20));
         }
 
@@ -148,17 +176,13 @@ namespace Lost_boy
             return drop;
         }
 
-        private void InitializeLevelBuild()
+        private void PLAY()
         {
-            builder = new LevelBuilder(LevelType.Classic);
-            builder
-                .SetPlayer(player)
-                .SetDescription("Testing level");
-        }
-
-        private void SaveLevelToFile(string name)
-        {
-
+            level = levels.First();
+            level.Begin();
+            setup = null;
+            this.KeyDown -= SetupKeyHandle;
+            this.KeyDown += KeyHandle;
         }
 
         public Form1()
@@ -169,16 +193,15 @@ namespace Lost_boy
             if (LevelSetup)
             {
                 instructions =
-                    "1,2,3,4 - enemies\n" +
-                    "5,6,7 - difficulties\n" +
-                    "Mouse - mid = begin, left = note point, right = close";
+                    "1 - casual\n2 - frosty\n3 - triky\n4 - rocky\n" +
+                    "Mouse - mid = begin, left = note point, right = close\n" +
+                    "Space - save to file, tab - set from file\n" +
+                    "r - PLAY";
                 setup = new Setup.LevelSetup();
                 this.MouseClick += new MouseEventHandler(MousePop);
                 this.KeyDown += SetupKeyHandle;
-                InitializeLevelBuild();
             }
             InitializePlayer();
-            this.KeyDown += KeyHandle;
             this.KeyUp += KeyUps;
             this.Paint += PaintGame;
             timer = new Timer();

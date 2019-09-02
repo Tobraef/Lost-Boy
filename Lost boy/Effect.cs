@@ -142,6 +142,28 @@ namespace Lost_boy
 {
     namespace OnShots
     {
+        public class ColorChage
+        {
+            private OnShot heldFunction;
+            public static implicit operator OnShot(ColorChage s)
+            {
+                return s.heldFunction;
+            }
+
+            public OnShot Get()
+            {
+                return heldFunction;
+            }
+
+            public ColorChage(System.Drawing.Color color)
+            {
+                heldFunction = projectile =>
+                {
+                    projectile.Color = color;
+                };
+            }
+        }
+
         public class SpeedChange
         {
             private OnShot heldFunction;

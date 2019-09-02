@@ -14,6 +14,12 @@ namespace Lost_boy
         public event Modify dmgModifiers;
         protected Direction direction;
 
+        public Color Color
+        {
+            get;
+            set;
+        }
+
         public Direction Direction
         {
             get { return direction; }
