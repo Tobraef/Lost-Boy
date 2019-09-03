@@ -37,9 +37,9 @@ namespace Lost_boy
 
     public enum Difficulty : int
     {
-        None ,
-        Easy ,
-        Normal ,
+        None,
+        Easy,
+        Normal,
         Hard
     }
 
@@ -276,7 +276,7 @@ namespace Lost_boy
         }
         void AdjustToDifficulty(Difficulty diff);
         void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff);
-}
+    }
 
     public interface ILevelBuilder
     {
@@ -289,6 +289,7 @@ namespace Lost_boy
         ILevelBuilder SetStrategyForCurrentEnemies(
             Vector start, IEnumerable<KeyValuePair<Vector, int>> ms, int delay);
         ILevelBuilder SetEnemyGroup(List<EnemyShip> group);
+        ILevelBuilder SetFinishedAction(Action<bool> action);
         ILevel Build();
 
     }

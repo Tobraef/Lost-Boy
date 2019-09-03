@@ -12,14 +12,11 @@ namespace Lost_boy
 {
     public partial class Form1 : Form
     {
-        Dictionary<Bonus, int> drop = new Dictionary<Bonus, int>();
-        bool LevelSetup = true;
-        List<IPlayAble> levels = new List<IPlayAble>();
         IPlayAble level;
+        private int lvlId;
         PlayerShip player;
         Timer timer;
         Setup.LevelSetup setup;
-        private string instructions;
         ILevelBuilder builder;
         private void KeyHandle(object sender, KeyEventArgs args)
         {
@@ -33,6 +30,10 @@ namespace Lost_boy
                     break;
                 case Keys.S:
                     level.HandlePlayer('S');
+                    break;
+                case Keys.Tab:
+                    // forbidden
+                    LoadNextLevel();
                     break;
                 default:
                     break;
@@ -56,11 +57,14 @@ namespace Lost_boy
                     setup.AppendEnemyToRoad(Enemies.EnemyTypes.Rocky);
                     break;
                 case Keys.Space:
-                    setup.SaveLevelToFile(@"E:\bedzie\Stworzone aplikacje c++\Lost boy\LevelFile.txt");
+                    string path = System.IO.Directory.GetCurrentDirectory();
+                    setup.SaveLevelsToFile(path + @"\LevelFile.txt");
                     break;
                 case Keys.Tab:
-                    setup.SetFromFile(@"E:\bedzie\Stworzone aplikacje c++\Lost boy\LevelFile.txt", player);
-                    SetLevels();
+                    LoadNextLevel();
+                    break;
+                case Keys.N:
+                    setup.FinishLevel();
                     break;
                 case Keys.R:
                     PLAY();
@@ -85,8 +89,6 @@ namespace Lost_boy
 
         private void MousePop(object sender, MouseEventArgs m)
         {
-            if (setup == null)
-                return;
             switch (m.Button)
             {
                 case MouseButtons.Left:
@@ -117,27 +119,51 @@ namespace Lost_boy
             else
             {
                 setup.Draw(g, p);
-                g.DrawString(instructions, new Font("Arial", 14), new SolidBrush(Color.White), new PointF(10, 10));
             }
         }
 
-        private void SetLevels()
+        private EnemyShip ParseEnemy(string txt, PlayerShip p)
         {
-            var enemiesIter = setup.GetEnemies().GetEnumerator();
-            var roadsToStartsIter = setup.GetRoads().GetEnumerator();
+            switch (txt)
+            {
+                case "Casual":
+                    return new CasualEnemy(new Vector());
+                case "Frosty":
+                    return new FrostyEnemy(new Vector());
+                case "Rocky":
+                    return new RockyEnemy(new Vector());
+                case "Tricky":
+                    return new TrickyEnemy(p, new Vector());
+            }
+            return null;
+        }
+
+        private List<EnemyShip> ParseEnemies(List<string> enemyShips)
+        {   
+            return enemyShips.Select(name => ParseEnemy(name,player)).ToList();
+        }
+
+        private void SetLevel(Setup.LevelInfoHolder info)
+        {
+            var enemiesIter = info.enemyShips.GetEnumerator();
+            var roadsToStartsIter = info.roadsToStarts.GetEnumerator();
             builder = new LevelBuilder(LevelType.Classic);
-                builder
-                    .SetPlayer(player)
-                    .SetDescription("Testing level")
-                    .SetDifficulty(Difficulty.Normal)
-                    .SetDroppable(GetTestDrop());
+            builder
+                .SetPlayer(player)
+                .SetDescription("Testing level")
+                .SetDifficulty(Difficulty.Normal)
+                .SetDroppable(GetTestDrop())
+                .SetFinishedAction(LevelFinishedAction);
             while (enemiesIter.MoveNext() && roadsToStartsIter.MoveNext())
             {
                 builder
-                    .SetEnemyGroup(enemiesIter.Current)
-                    .SetStrategyForCurrentEnemies(roadsToStartsIter.Current.Key, roadsToStartsIter.Current.Value, 5);
+                    .SetEnemyGroup(ParseEnemies(enemiesIter.Current))
+                    .SetStrategyForCurrentEnemies(
+                    roadsToStartsIter.Current.Key,
+                    roadsToStartsIter.Current.Value,
+                    5);
             }
-            levels.Add(builder.Build());
+            level = builder.Build();
         }
 
         private void InitializePlayer()
@@ -173,16 +199,36 @@ namespace Lost_boy
             drop.Add(new HealthBonus(new Vector()), 10);
             drop.Add(new LaserDamageBonus(new Vector()), 10);
             drop.Add(new WeaponReloadTimeBonus(new Vector()), 10);
+            drop.Add(new ShipSpeedBonus(new Vector()), 10);
             return drop;
         }
 
         private void PLAY()
         {
-            level = levels.First();
-            level.Begin();
             setup = null;
             this.KeyDown -= SetupKeyHandle;
+            this.MouseClick -= MousePop;
             this.KeyDown += KeyHandle;
+        }
+
+        private void LoadNextLevel()
+        {
+            string pathing = System.IO.Directory.GetCurrentDirectory();
+            var lvlInfo = Setup.LevelReader.ReadLevel(pathing + @"\LevelFile.txt", ++lvlId);
+            SetLevel(lvlInfo);
+            level.Begin();
+        }
+
+        private void LevelFinishedAction(bool playerWon)
+        {
+            if (playerWon)
+            {
+                LoadNextLevel();
+            }
+            else
+            {
+                throw new NotImplementedException("You lose");
+            }
         }
 
         public Form1()
@@ -190,15 +236,10 @@ namespace Lost_boy
             InitializeComponent();
             this.BackColor = Color.Black;
             this.Size = new Size(VALUES.WIDTH, VALUES.HEIGHT + 200);
-            if (LevelSetup)
+            if (true)
             {
-                instructions =
-                    "1 - casual\n2 - frosty\n3 - triky\n4 - rocky\n" +
-                    "Mouse - mid = begin, left = note point, right = close\n" +
-                    "Space - save to file, tab - set from file\n" +
-                    "r - PLAY";
                 setup = new Setup.LevelSetup();
-                this.MouseClick += new MouseEventHandler(MousePop);
+                this.MouseClick += MousePop;
                 this.KeyDown += SetupKeyHandle;
             }
             InitializePlayer();

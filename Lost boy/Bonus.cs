@@ -166,4 +166,22 @@ namespace Lost_boy
             this.color = Color.Green;
         }
     }
+
+    public class ShipSpeedBonus: Bonus
+    {
+        public override Bonus Clone(Vector position)
+        {
+            return new ShipSpeedBonus(position);
+        }
+
+        public ShipSpeedBonus(Vector position) :
+            base(position,
+                ship =>
+                {
+                    ship.MaxSpeed += 2;
+                })
+        {
+            this.color = Color.Maroon;
+        }
+    }
 }

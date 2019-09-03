@@ -20,9 +20,18 @@ namespace Lost_boy
             };
             timer.Start();
         }
-        
+
         public void ApplyStrategy(IShip ship)
         {
+            EnemyShip enemy = (EnemyShip)ship;
+            if (enemy.Position.Y > VALUES.HEIGHT)
+                enemy.Teleport(enemy.Position.X, -enemy.Size.Y);
+
+            if (enemy.Position.X < -enemy.Size.X - 10)
+                enemy.Teleport(VALUES.WIDTH, enemy.Position.Y);
+            else if (enemy.Position.X > VALUES.WIDTH + enemy.Size.X + 10)
+                enemy.Teleport(0, enemy.Position.Y);
+
             if (ship.Position.X > circulationPointX)
                 ship.Acceleration = new Vector(circulatingAccelarationX, 0);
             else
@@ -153,7 +162,7 @@ namespace Lost_boy
             currentStep = null;
         }
 
-        public LevelInitialStrategy(IEnumerator<KeyValuePair<Vector,int>> iter, int delay)
+        public LevelInitialStrategy(IEnumerator<KeyValuePair<Vector, int>> iter, int delay)
         {
             currentStep = iter;
             this.delay = delay;

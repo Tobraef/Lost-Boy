@@ -14,7 +14,7 @@ namespace Lost_boy
         private Rectangle rectangle;
         private HPBar hpBar;
         private IMovementStrategy strategy;
-        private Random shootingRandomizer = new Random(123);
+        public Random shootingRandomizer = new Random(123);
         protected Color color = Color.Red;
         public event Action onDeath;
         public event Action<IProjectile> bulletAdder;
@@ -67,7 +67,7 @@ namespace Lost_boy
 
         public IMovementStrategy MovementStrategy
         {
-            protected get { return strategy; }
+            get { return strategy; }
             set
             {
                 if (strategy != null)

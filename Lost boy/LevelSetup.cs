@@ -10,61 +10,38 @@ namespace Lost_boy
 {
     namespace Setup
     {
-        public class LevelSetup
+        public struct LevelInfoHolder
         {
-            private readonly string levelDescription;
-            private int levelId;
-            private int maxSpeed = 10;
+            public int id;
+            public List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> roadsToStarts;
+            public List<List<string>> enemyShips;
+        }
+
+        class RoadSetup
+        {
+            private readonly int maxSpeed = 10;
             private Vector currentPoint;
             private Color currentColor = Color.Blue;
             private List<KeyValuePair<Vector, int>> currentRoad = new List<KeyValuePair<Vector, int>>();
             private readonly List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> roadsToStarts =
                 new List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>>();
-            private readonly List<List<string>> enemyShips = new List<List<string>>();
 
             private List<KeyValuePair<Point, Point>> currentDrawable = new List<KeyValuePair<Point, Point>>();
             private readonly List<List<KeyValuePair<Point, Point>>> drawables = new List<List<KeyValuePair<Point, Point>>>();
-
-            private void NextColor()
-            {
-                if (currentColor == Color.Blue)
-                    currentColor = Color.Green;
-                else if (currentColor == Color.Green)
-                    currentColor = Color.Pink;
-                else if (currentColor == Color.Pink)
-                    currentColor = Color.Red;
-                else
-                    currentColor = Color.Blue;
-            }
 
             public List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> GetRoads()
             {
                 return roadsToStarts;
             }
 
-            public List<List<EnemyShip>> GetEnemies()
-            {
-                List<List<EnemyShip>> toRet = new List<List<EnemyShip>>();
-                foreach (var eGroup in enemyShips)
-                {
-                    toRet.Add(new List<EnemyShip>(eGroup.Select(name =>
-                        {
-                            return ParseEnemy(name, null);
-                        })));
-                }
-                return toRet;
-            }
-
-            public KeyValuePair<Vector, List<KeyValuePair<Vector, int>>> CloseRoad()
+            public void CloseRoad()
             {
                 currentDrawable = new List<KeyValuePair<Point, Point>>();
                 currentRoad = new List<KeyValuePair<Vector, int>>();
-                return roadsToStarts.Last();
             }
 
             public void BeginRoad(Vector where)
             {
-                enemyShips.Add(new List<string>());
                 roadsToStarts.Add(new KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>(where, currentRoad));
                 currentPoint = where;
                 currentDrawable.Add(new KeyValuePair<Point, Point>(where, where));
@@ -95,88 +72,165 @@ namespace Lost_boy
                 currentColor = Color.Blue;
             }
 
+            private void NextColor()
+            {
+                if (currentColor == Color.Blue)
+                    currentColor = Color.Green;
+                else if (currentColor == Color.Green)
+                    currentColor = Color.Pink;
+                else if (currentColor == Color.Pink)
+                    currentColor = Color.Red;
+                else
+                    currentColor = Color.Blue;
+            }
+        }
+
+        public class LevelSetup
+        {
+            private readonly List<LevelInfoHolder> levels = new List<LevelInfoHolder>();
+            private List<List<string>> enemyShips = new List<List<string>>();
+            private RoadSetup roadSetup;
+            private readonly string instructions = 
+                    "1 - casual\n2 - frosty\n3 - triky\n4 - rocky\n" +
+                    "Mouse - mid = begin, left = note point, right = close\n" +
+                    "Space - save to file\n" +
+                    "N - finish level\n" +
+                    "tab - next level\n" +
+                    "R - PLAY";
+
+            public List<LevelInfoHolder> GetLevels()
+            {
+                return levels;
+            }
+
+            public void Draw(Graphics g, Pen p)
+            {
+                roadSetup.Draw(g, p);
+                g.DrawString(instructions, new Font("Arial", 14), new SolidBrush(Color.White), new PointF(10, 10));
+            }
+
+            public void BeginRoad(Vector where)
+            {
+                where.X += where.X - VALUES.WIDTH / 2;
+                where.Y += where.Y - VALUES.HEIGHT / 2;
+                enemyShips.Add(new List<string>());
+                roadSetup.BeginRoad(where);
+            }
+
+            public void NotePoint(Vector where)
+            {
+                roadSetup.NotePoint(where);
+            }
+
+            public void CloseRoad()
+            {
+                roadSetup.CloseRoad();
+            }
+
+            public void FinishLevel()
+            {
+                LevelInfoHolder level = new LevelInfoHolder();
+                level.enemyShips = enemyShips;
+                level.roadsToStarts = new List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>>(roadSetup.GetRoads());
+                levels.Add(level);
+                roadSetup = new RoadSetup();
+                enemyShips = new List<List<string>>();
+            }
+
             public void AppendEnemyToRoad(Enemies.EnemyTypes enemy)
             {
                 enemyShips.Last().Add(enemy.ToString());
             }
 
-            public void SaveLevelToFile(string fileName)
+            public void SaveLevelsToFile(string fileName)
             {
+                if (enemyShips.Count != 0)
+                    FinishLevel();
+                int id = 0;
                 StringBuilder sb = new StringBuilder();
-                foreach (var eGroup in enemyShips)
+                foreach (var lvl in levels)
                 {
-                    sb.AppendLine(String.Join(" ", eGroup));
-                }
+                    sb.AppendLine("=== " + ++id);
 
-                sb.AppendLine("---");
-
-                foreach (var rToS in roadsToStarts)
-                {
-                    sb.AppendLine(rToS.Key.ToString());
-                    foreach(var road in rToS.Value)
+                    foreach (var eGroup in lvl.enemyShips)
                     {
-                        sb.AppendFormat("{0} {1} {2}", road.Key.X, road.Key.Y, road.Value);
-                        sb.AppendLine();
+                        sb.AppendLine(String.Join(" ", eGroup));
+                    }
+
+                    sb.AppendLine("---");
+
+                    foreach (var rToS in lvl.roadsToStarts)
+                    {
+                        sb.AppendLine(rToS.Key.ToString());
+                        foreach (var road in rToS.Value)
+                        {
+                            sb.AppendFormat("{0} {1} {2}", road.Key.X, road.Key.Y, road.Value);
+                            sb.AppendLine();
+                        }
                     }
                 }
-
-                sb.AppendLine("===");
+                if (!File.Exists(fileName))
+                    File.Create(fileName);
                 File.AppendAllText(fileName, sb.ToString());
             }
 
-            private EnemyShip ParseEnemy(string txt, PlayerShip p)
+            public LevelSetup()
             {
-                switch (txt)
-                {
-                case "Casual":
-                    return new CasualEnemy(new Vector());
-                case "Frosty":
-                    return new FrostyEnemy(new Vector());
-                case "Rocky":
-                    return new RockyEnemy(new Vector());
-                case "Tricky":
-                    return new TrickyEnemy(p, new Vector());
-                }
-                return null;
+                roadSetup = new RoadSetup();
             }
+        }
 
-            public void SetFromFile(string fileName, PlayerShip p)
+        public class LevelReader
+        {
+            public static LevelInfoHolder ReadLevel(string fileName, int levelId)
             {
                 var lines = File.ReadLines(fileName);
                 var iter = lines.GetEnumerator();
+                string id = levelId.ToString();
+
+                while (true)
+                {
+                    if (!iter.MoveNext())
+                        throw new IndexOutOfRangeException("No more levels!");
+                    if (iter.Current.Contains("===") && iter.Current.Contains(id))
+                        break;
+                }
+                LevelInfoHolder lvl = new LevelInfoHolder
+                {
+                    id = ++levelId,
+                    enemyShips = new List<List<string>>(),
+                    roadsToStarts = new List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>>()
+                };
                 while (iter.MoveNext())
                 {
-                    if (iter.Current == "---")
+                    if (iter.Current.Equals("---"))
                         break;
-                    enemyShips.Add(new List<string>());
-                    enemyShips.Last().AddRange(iter.Current
+                    lvl.enemyShips.Add(new List<string>());
+                    lvl.enemyShips.Last().AddRange(iter.Current
                         .Split(' '));
                 }
                 List<KeyValuePair<Vector, int>> road = null;
-                while(iter.MoveNext())
+                while (iter.MoveNext())
                 {
                     var txt = iter.Current.Split(' ');
-                    if (txt.Equals("==="))
-                        return;
+                    if (txt[0].Equals("==="))
+                        break;
                     if (txt.Length != 3)
                     {
                         road = new List<KeyValuePair<Vector, int>>();
-                        roadsToStarts.Add(
+                        lvl.roadsToStarts.Add(
                             new KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>
                             (new Vector(Int32.Parse(txt[2]), Int32.Parse(txt[5])),
                             road));
                     }
                     else
                     {
-                        road.Add(new KeyValuePair<Vector,int>
+                        road.Add(new KeyValuePair<Vector, int>
                             (new Vector(Int32.Parse(txt[0]), Int32.Parse(txt[1])),
                                 Int32.Parse(txt[2])));
                     }
                 }
-            }
-
-            public LevelSetup()
-            {
+                return lvl;
             }
         }
     }

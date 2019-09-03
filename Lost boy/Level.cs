@@ -65,6 +65,12 @@ namespace Lost_boy
             return this;
         }
 
+        public ILevelBuilder SetFinishedAction(Action<bool> action)
+        {
+            this.lvl.Finished += action;
+            return this;
+        }
+
         public ILevelBuilder SetStrategyForCurrentEnemies(Vector start, IEnumerable<KeyValuePair<Vector, int>> ms, int delay)
         {
             foreach (var enemy in enemies)
@@ -155,7 +161,7 @@ namespace Lost_boy
                         enemy.Defence /= 2;
                         enemy.Health *= 3;
                         enemy.Health /= 4;
-                        enemy.Weapon.Ammo.AppendDmgModifier((ref int damage) => 
+                        enemy.Weapon.Ammo.AppendDmgModifier((ref int damage) =>
                         {
                             damage *= 3;
                             damage /= 4;
@@ -220,7 +226,7 @@ namespace Lost_boy
                         };
                     }
                 }
-                
+
             }
         }
 
@@ -229,14 +235,6 @@ namespace Lost_boy
             foreach (var enemy in Enemies)
             {
                 enemy.Move();
-                if (enemy.Position.Y > VALUES.HEIGHT)
-                    enemy.Teleport(enemy.Position.X, -enemy.Size.Y);
-
-                if (enemy.Position.X < -enemy.Size.X - 10)
-                    enemy.Teleport(VALUES.WIDTH, enemy.Position.Y);
-                else if (enemy.Position.X > VALUES.WIDTH + enemy.Size.X + 10)
-                    enemy.Teleport(0, enemy.Position.Y);
-
                 enemy.Shoot();
                 foreach (var bullet in playersProjectiles)
                 {
@@ -281,14 +279,34 @@ namespace Lost_boy
                 enemyProjectiles.Remove(bullet);
             }
             toRemoveProjectiles.Clear();
-            if (Enemies.Count + enemyProjectiles.Count == 0)
+            if (Player.Health < 1)
                 Finished(true);
+            if (Enemies.Count + enemyProjectiles.Count == 0)
+                Finished(false);
+            
+        }
+
+        private void RandomEnemyFalldown()
+        {
+            Enemies
+                .Where(s => !(s.MovementStrategy is LevelInitialStrategy))
+                .ToList()
+                .ForEach(s =>
+                {
+                    if (VALUES.random.Next(100) < 70)
+                        s.MovementStrategy = new FallDownStrategy();
+                });
         }
 
         public void Begin()
         {
             SetEnemies();
             Player.bulletAdder += PlayerBulletAdder;
+            new Thread(() =>
+            {
+                Thread.Sleep(30000);
+                RandomEnemyFalldown();
+            }).Start();
         }
 
         public void Draw(Graphics g, Pen p)
@@ -318,6 +336,7 @@ namespace Lost_boy
         {
             foreach (var e in Enemies)
             {
+                e.shootingRandomizer = new Random(VALUES.random.Next());
                 e.bulletAdder += EnemyBulletAdder;
                 e.onDeath += () => toRemoveEnemies.Add(e);
                 e.onDeath += () =>
