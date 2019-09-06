@@ -216,6 +216,38 @@ namespace Lost_boy
                 };
             }
         }
+
+        public class TwistPath
+        {
+            private OnShot heldFunction;
+            public static implicit operator OnShot(TwistPath s)
+            {
+                return s.heldFunction;
+            }
+
+            public OnShot Get()
+            {
+                return heldFunction;
+            }
+
+            public TwistPath()
+            {
+                heldFunction = projectile =>
+                {
+                    new Thread(() =>
+                    {
+                        projectile.Speed = new Vector(12, projectile.Speed.Y);
+                        while (projectile.Position.Y > 0 && projectile.Position.Y < VALUES.HEIGHT)
+                        {
+                            projectile.Acceleration = new Vector(-3, 0);
+                            Thread.Sleep(1000);
+                            projectile.Acceleration = new Vector(3, 0);
+                            Thread.Sleep(1000);
+                        }
+                    }).Start();
+                };
+            }
+        }
     }
 
     namespace OnHits
@@ -266,6 +298,17 @@ namespace Lost_boy
                 ship.MaxSpeed += value;
             },
                 5000)
+            { }
+        }
+
+        public class ArmorMeltEffect : Effect
+        {
+            public ArmorMeltEffect(int value)
+                : base(
+            ship =>
+            {
+                ship.Defence -= value;
+            })
             { }
         }
     }

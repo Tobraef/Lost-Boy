@@ -11,6 +11,7 @@ namespace Lost_boy
     {
         private ILevel lvl;
         private Difficulty difficulty;
+        private int difficultyId;
         PlayerShip player;
         private List<EnemyShip> enemies = new List<EnemyShip>();
         private List<EnemyShip> enemiesWithSetStrategies = new List<EnemyShip>();
@@ -59,8 +60,9 @@ namespace Lost_boy
             return this;
         }
 
-        public ILevelBuilder SetDifficulty(Difficulty difficulty)
+        public ILevelBuilder SetDifficulty(Difficulty difficulty, int id)
         {
+            this.difficultyId = id;
             this.difficulty = difficulty;
             return this;
         }
@@ -111,7 +113,7 @@ namespace Lost_boy
             enemies.Clear();
             lvl.Enemies = enemiesWithSetStrategies;
             lvl.SetDroppables(drop, difficulty);
-            lvl.AdjustToDifficulty(difficulty);
+            lvl.AdjustToDifficulty(difficulty, difficultyId);
             return lvl;
         }
     }
@@ -121,8 +123,9 @@ namespace Lost_boy
         public event Action<bool> Finished;
         private List<EnemyShip> toRemoveEnemies = new List<EnemyShip>();
         private List<IProjectile> enemyProjectiles = new List<IProjectile>();
-        private List<IProjectile> playersProjectiles = new List<IProjectile>();
-        private List<IProjectile> toRemoveProjectiles = new List<IProjectile>();
+        private List<IBullet> playersProjectiles = new List<IBullet>();
+        private List<IProjectile> toRemoveEnemyProjectiles = new List<IProjectile>();
+        private List<IBullet> toRemovePlayerProjectiles = new List<IBullet>();
 
         public PlayerShip Player
         {
@@ -148,7 +151,7 @@ namespace Lost_boy
             set;
         }
 
-        public void AdjustToDifficulty(Difficulty diff)
+        public void AdjustToDifficulty(Difficulty diff, int difficultyStage)
         {
             switch (diff)
             {
@@ -159,8 +162,8 @@ namespace Lost_boy
                     foreach (var enemy in Enemies)
                     {
                         enemy.Defence /= 2;
-                        enemy.Health *= 3;
-                        enemy.Health /= 4;
+                        enemy.MaxHealth *= 3;
+                        enemy.MaxHealth /= 4;
                         enemy.Weapon.Ammo.AppendDmgModifier((ref int damage) =>
                         {
                             damage *= 3;
@@ -171,11 +174,23 @@ namespace Lost_boy
                 case Difficulty.Hard:
                     foreach (var enemy in Enemies)
                     {
-                        enemy.Health *= 3;
-                        enemy.Health /= 2;
+                        enemy.MaxHealth *= 3;
+                        enemy.MaxHealth /= 2;
                         enemy.Weapon.Ammo.AppendDmgModifier((ref int damage) => damage *= 2);
                     }
                     break;
+            }
+            difficultyStage += 10;
+            foreach (var enemy in Enemies)
+            {
+                enemy.MaxHealth *= difficultyStage;
+                enemy.MaxHealth /= 10;
+                enemy.Weapon.Ammo.AppendDmgModifier((ref int damage) =>
+                {
+                    damage *= difficultyStage;
+                    damage /= 10;
+                });
+                enemy.Defence += difficultyStage;
             }
         }
 
@@ -250,7 +265,7 @@ namespace Lost_boy
                 bullet.Move();
                 if (bullet.Position.Y + bullet.Size.Y < 0)
                 {
-                    toRemoveProjectiles.Add(bullet);
+                    toRemovePlayerProjectiles.Add(bullet);
                 }
             }
 
@@ -260,7 +275,7 @@ namespace Lost_boy
                 bullet.Move();
                 if (bullet.Position.Y > VALUES.HEIGHT)
                 {
-                    toRemoveProjectiles.Add(bullet);
+                    toRemoveEnemyProjectiles.Add(bullet);
                 }
                 else if (Player.IsHit(bullet))
                 {
@@ -273,12 +288,13 @@ namespace Lost_boy
                 Enemies.Remove(enemy);
             }
             toRemoveEnemies.Clear();
-            foreach (var bullet in toRemoveProjectiles)
+
+            foreach (var bullet in toRemoveEnemyProjectiles)
             {
-                playersProjectiles.Remove(bullet);
                 enemyProjectiles.Remove(bullet);
             }
-            toRemoveProjectiles.Clear();
+            toRemoveEnemyProjectiles.Clear();
+
             if (Player.Health < 1)
                 Finished(true);
             if (Enemies.Count + enemyProjectiles.Count == 0)
@@ -301,7 +317,7 @@ namespace Lost_boy
         public void Begin()
         {
             SetEnemies();
-            Player.bulletAdder += PlayerBulletAdder;
+            Player.Weapon.BulletAdder = PlayerBulletAdder;
             new Thread(() =>
             {
                 Thread.Sleep(30000);
@@ -320,15 +336,15 @@ namespace Lost_boy
             Player.Draw(g, p);
         }
 
-        private void PlayerBulletAdder(IProjectile bullet)
+        private void PlayerBulletAdder(IBullet bullet)
         {
-            bullet.onDeath += () => toRemoveProjectiles.Add(bullet);
+            bullet.onDeath += () => toRemovePlayerProjectiles.Add(bullet);
             playersProjectiles.Add(bullet);
         }
 
         private void EnemyBulletAdder(IProjectile bullet)
         {
-            bullet.onDeath += () => toRemoveProjectiles.Add(bullet);
+            bullet.onDeath += () => toRemoveEnemyProjectiles.Add(bullet);
             enemyProjectiles.Add(bullet);
         }
 
@@ -337,7 +353,7 @@ namespace Lost_boy
             foreach (var e in Enemies)
             {
                 e.shootingRandomizer = new Random(VALUES.random.Next());
-                e.bulletAdder += EnemyBulletAdder;
+                e.Weapon.BulletAdder = EnemyBulletAdder;
                 e.onDeath += () => toRemoveEnemies.Add(e);
                 e.onDeath += () =>
                 {
@@ -346,7 +362,7 @@ namespace Lost_boy
                         var bonus = new GoldCoin(e.Position, VALUES.GOLD_AVERAGE_VALUE);
                         bonus.onDeath += () =>
                         {
-                            this.toRemoveProjectiles.Add(bonus);
+                            this.toRemoveEnemyProjectiles.Add(bonus);
                         };
                         enemyProjectiles.Add(bonus);
                     }

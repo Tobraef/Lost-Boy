@@ -11,6 +11,8 @@ namespace Lost_boy
         private event Action<IShip> onHits;
         private event Modify dmgModifiers;
 
+        public abstract int RechargeTime { get; }
+
         public void AppendOnHit(Action<IShip> action)
         {
             onHits += action;
@@ -37,6 +39,9 @@ namespace Lost_boy
     public class BasicLaserFactory : BulletFactory
     {
         private Direction direction;
+
+        public override int RechargeTime => VALUES.BASIC_LASER_RECHARGE;
+
         public override IBullet Create(Vector where)
         {
             BasicLaser bullet = new BasicLaser(where, direction);
@@ -51,4 +56,23 @@ namespace Lost_boy
         }
     }
 
+    public class PlasmaFactory : BulletFactory
+    {
+        private Direction direction;
+
+        public override int RechargeTime => VALUES.BASIC_LASER_RECHARGE + VALUES.BASIC_LASER_RECHARGE/2;
+
+        public override IBullet Create(Vector where)
+        {
+            PlasmaBullet bullet = new PlasmaBullet(where, direction);
+            ApplyDmgModifier(bullet);
+            ApplyOnHits(bullet);
+            return bullet;
+        }
+
+        public PlasmaFactory(Direction dir)
+        {
+            direction = dir;
+        }
+    }
 }

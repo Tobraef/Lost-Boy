@@ -151,7 +151,7 @@ namespace Lost_boy
             builder
                 .SetPlayer(player)
                 .SetDescription("Testing level")
-                .SetDifficulty(Difficulty.Normal)
+                .SetDifficulty(Difficulty.Normal, lvlId)
                 .SetDroppable(GetTestDrop())
                 .SetFinishedAction(LevelFinishedAction);
             while (enemiesIter.MoveNext() && roadsToStartsIter.MoveNext())
@@ -169,7 +169,9 @@ namespace Lost_boy
         private void InitializePlayer()
         {
             player = new PlayerShip();
-            player.Weapon.AppendOnShot(new OnShots.ColorChage(Color.Peru));
+            player.Weapon = new TripleWeapon(new BasicLaserFactory(Direction.Up));
+            // testing site below
+            player.Weapon.Ammo = new PlasmaFactory(Direction.Up);
             player.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(10, 3, 20));
         }
 
@@ -200,6 +202,8 @@ namespace Lost_boy
             drop.Add(new LaserDamageBonus(new Vector()), 10);
             drop.Add(new WeaponReloadTimeBonus(new Vector()), 10);
             drop.Add(new ShipSpeedBonus(new Vector()), 10);
+            drop.Add(new ArmorMeltBonus(new Vector()), 10);
+            drop.Add(new FrostBonus(new Vector()), 10);
             return drop;
         }
 
@@ -235,14 +239,16 @@ namespace Lost_boy
         {
             InitializeComponent();
             this.BackColor = Color.Black;
-            this.Size = new Size(VALUES.WIDTH, VALUES.HEIGHT + 200);
-            if (true)
+            this.Size = new Size(VALUES.WIDTH, VALUES.HEIGHT + VALUES.PLAYER_HEIGHT);
+            if (false)
             {
                 setup = new Setup.LevelSetup();
                 this.MouseClick += MousePop;
                 this.KeyDown += SetupKeyHandle;
             }
             InitializePlayer();
+            LoadNextLevel();
+            PLAY();
             this.KeyUp += KeyUps;
             this.Paint += PaintGame;
             timer = new Timer();

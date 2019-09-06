@@ -144,9 +144,18 @@ namespace Lost_boy
 
             public void SaveLevelsToFile(string fileName)
             {
+                if (!File.Exists(fileName))
+                    File.Create(fileName);
+
                 if (enemyShips.Count != 0)
                     FinishLevel();
-                int id = 0;
+                var txt = File.ReadLines(fileName);
+                int id = Int32.Parse(
+                txt
+                    .Where(line => line.Contains("==="))
+                    .Last()
+                    .Split(' ')
+                    .Last());
                 StringBuilder sb = new StringBuilder();
                 foreach (var lvl in levels)
                 {
@@ -169,8 +178,7 @@ namespace Lost_boy
                         }
                     }
                 }
-                if (!File.Exists(fileName))
-                    File.Create(fileName);
+
                 File.AppendAllText(fileName, sb.ToString());
             }
 

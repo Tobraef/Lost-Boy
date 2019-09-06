@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FastTest
 {
-    class Body
-    {
-    }
+    using Lost_boy;
+
+
 }

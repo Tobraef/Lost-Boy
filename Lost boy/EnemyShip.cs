@@ -17,7 +17,6 @@ namespace Lost_boy
         public Random shootingRandomizer = new Random(123);
         protected Color color = Color.Red;
         public event Action onDeath;
-        public event Action<IProjectile> bulletAdder;
 
         public int ShootingChance
         {
@@ -36,6 +35,7 @@ namespace Lost_boy
             get { return maxHealth; }
             set
             {
+                Health += value - maxHealth;
                 maxHealth = value;
                 hpBar = new HPBar(this);
             }
@@ -98,13 +98,14 @@ namespace Lost_boy
         public void TakeDamage(int val)
         {
             onDamageTaken(ref val);
-            if (val > 0)
+            if (val < 1)
             {
-                this.Health -= val;
-                this.hpBar.HpChanged(Health);
-                if (Health <= 0)
-                    onDeath();
+                val = 1;
             }
+            this.Health -= val;
+            this.hpBar.HpChanged(Health);
+            if (Health <= 0)
+                onDeath();
         }
 
         public void TakeTrueDamage(int val)
@@ -118,7 +119,7 @@ namespace Lost_boy
         public virtual void Shoot()
         {
             if (shootingRandomizer.Next(1000) < ShootingChance)
-                bulletAdder(Weapon.GetBullet(ShootingPosition));
+                Weapon.PullTheTrigger(ShootingPosition);
         }
 
         public override void Draw(Graphics g, Pen p)
@@ -167,7 +168,7 @@ namespace Lost_boy
             this.Health = VALUES.ENEMY_HEALTH;
             this.Defence = 0;
             this.onDamageTaken += (ref int val) => val -= Defence;
-            this.Weapon = new BasicWeapon(new BasicLaserFactory(Direction.Down));
+            this.Weapon = new SingleWeapon(new BasicLaserFactory(Direction.Down));
             this.rectangle = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
             this.MovementStrategy = new NormalMovementStrategy();
             this.hpBar = new HPBar(this);

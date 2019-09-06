@@ -9,7 +9,7 @@ namespace Lost_boy
 {
     public abstract class Laser : Mover, IBullet
     {
-        public event Action onDeath;
+        public virtual event Action onDeath;
         public event Action<IShip> onHits;
         public event Modify dmgModifiers;
         protected Direction direction;
@@ -31,7 +31,7 @@ namespace Lost_boy
             set;
         }
 
-        public void AffectShip(IShip ship)
+        public virtual void AffectShip(IShip ship)
         {
             if (onHits != null)
                 onHits(ship);
@@ -39,7 +39,6 @@ namespace Lost_boy
             if (dmgModifiers != null)
                 dmgModifiers(ref dmg);
             ship.TakeDamage(dmg);
-            onDeath();
         }
 
         public Laser(Vector position, Vector size, Direction dir, int speed, int damage) :

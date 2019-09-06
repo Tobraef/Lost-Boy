@@ -63,7 +63,7 @@ namespace Lost_boy
             base(position,
             ship =>
             {
-                ship.Weapon.AppendOnShot(new OnShots.SpeedChange(VALUES.BONUS_VALUE));
+                ship.Weapon.AppendOnShot(new OnShots.SpeedChange(5));
             })
         {
             this.color = Color.Yellow;
@@ -138,7 +138,7 @@ namespace Lost_boy
             base(position,
             ship =>
             {
-                ship.Weapon.ReloadTime -= 500;
+                ship.Weapon.ReloadTime -= 100;
                 if (ship.Weapon.ReloadTime < 50)
                 {
                     ship.Weapon.ReloadTime = 50;
@@ -183,5 +183,37 @@ namespace Lost_boy
         {
             this.color = Color.Maroon;
         }
+    }
+
+    public class ArmorMeltBonus : Bonus
+    {
+        public override Bonus Clone(Vector position)
+        {
+            return new ArmorMeltBonus(position);
+        }
+
+        public ArmorMeltBonus(Vector position) :
+            base(position,
+                ship =>
+                {
+                    ship.Weapon.Ammo.AppendOnHit(new OnHits.ArmorMeltEffect(2));
+                })
+        { }
+    }
+
+    public class FrostBonus : Bonus
+    {
+        public override Bonus Clone(Vector position)
+        {
+            return new FrostBonus(position);
+        }
+
+        public FrostBonus(Vector position) :
+            base(position,
+                ship =>
+                {
+                    ship.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(5));
+                })
+        { }
     }
 }

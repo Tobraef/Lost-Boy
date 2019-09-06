@@ -15,7 +15,6 @@ namespace Lost_boy
         private Color color = Color.Green;
         private HPBar hpBar;
         public event Action onDeath;
-        public event Action<IProjectile> bulletAdder;
 
         public IWeapon Weapon
         {
@@ -86,8 +85,7 @@ namespace Lost_boy
 
         public void Shoot()
         {
-            if (Weapon.IsLoaded)
-                bulletAdder(Weapon.GetBullet(ShootingPosition));
+            Weapon.PullTheTrigger(ShootingPosition);
         }
 
         public override void Draw(Graphics g, Pen p)
@@ -133,7 +131,7 @@ namespace Lost_boy
             this.Defence = 0;
             this.onDamageTaken += (ref int val) => val -= Defence;
             this.onDamageTaken += (ref int val) => { if (Health <= 0) System.Windows.Forms.Application.Exit(); };
-            this.Weapon = new BasicWeapon(new BasicLaserFactory(Direction.Up));
+            this.Weapon = new SingleWeapon(new BasicLaserFactory(Direction.Up));
             this.rectangle = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
             this.hpBar = new HPBar(this);
             this.Health = MaxHealth;

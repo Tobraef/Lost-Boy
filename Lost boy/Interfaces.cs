@@ -5,6 +5,25 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 
+/*TODOS
+ * NEW FEATURES
+ * implement shop
+ * implement star map
+ * implement boss
+ * implement enemy that appears randomly, drops lots of stuff, disappears after specified time
+ * implement graphics
+ * implement new level types
+ * implement new ammo types
+ * 
+ * REFACTOR
+ * falling strategy -> infinite timer
+ * writing to file -> increment last lvl id, not start over from 1 (done, needs testing)
+ * 
+ * MAYBE
+ * clear interfaces, not to expose unnecessary stuff
+ * implement secondary weapon
+*/
+
 namespace Lost_boy
 {
     public delegate void Modify(ref int i);
@@ -61,7 +80,7 @@ namespace Lost_boy
         public const int PLAYER_HEIGHT = 50;
         public const int PLAYER_WIDTH = 50;
         public const int PLAYER_HEALTH = 200;
-        public const int PLAYER_SPEED = 10;
+        public const int PLAYER_SPEED = 15;
 
         public const int ENEMY_HEIGHT = 30;
         public const int ENEMY_WIDTH = 30;
@@ -70,7 +89,9 @@ namespace Lost_boy
 
         public const int TICK_INTERVAL = 3000; //milis
 
-        public const int BASIC_WEAPON_RELOAD_TIME = 500;
+        public const int BASIC_WEAPON_RELOAD_TIME = 300;
+
+        public const int BASIC_LASER_RECHARGE = 200;
         public const int BASIC_LASER_DMG = 10;
         public const int BASIC_LASER_SPEED = 10;
         public const int BASIC_LASER_BURN_DMG = 5;
@@ -148,6 +169,10 @@ namespace Lost_boy
 
     public interface IBulletFactory
     {
+        int RechargeTime
+        {
+            get;
+        }
         void AppendOnHit(Action<IShip> e);
         void AppendDmgModifier(Modify m);
         IBullet Create(Vector where);
@@ -155,7 +180,11 @@ namespace Lost_boy
 
     public interface IWeapon
     {
-        IBullet GetBullet(Vector launchPos);
+        Action<IBullet> BulletAdder
+        {
+            set;
+        }
+        void PullTheTrigger(Vector launchPos);
         IBulletFactory Ammo
         {
             get;
@@ -166,16 +195,11 @@ namespace Lost_boy
             get;
             set;
         }
-        bool IsLoaded
-        {
-            get;
-        }
         void AppendOnShot(OnShots.OnShot e);
     }
 
     public interface IShip : IMover
     {
-        event Action<IProjectile> bulletAdder;
         event Action onDeath;
         IWeapon Weapon
         {
@@ -274,7 +298,7 @@ namespace Lost_boy
             set;
             get;
         }
-        void AdjustToDifficulty(Difficulty diff);
+        void AdjustToDifficulty(Difficulty diff, int id);
         void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff);
     }
 
@@ -285,7 +309,7 @@ namespace Lost_boy
         ILevelBuilder AppendEnemy(EnemyShip ship);
         ILevelBuilder CreateEnemy(Enemies.EnemyTypes type);
         ILevelBuilder SetDroppable(Dictionary<Bonus, int> set);
-        ILevelBuilder SetDifficulty(Difficulty difficulty);
+        ILevelBuilder SetDifficulty(Difficulty difficulty, int id);
         ILevelBuilder SetStrategyForCurrentEnemies(
             Vector start, IEnumerable<KeyValuePair<Vector, int>> ms, int delay);
         ILevelBuilder SetEnemyGroup(List<EnemyShip> group);

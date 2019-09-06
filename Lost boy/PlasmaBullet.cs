@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
-using Lost_boy.OnHits;
 
 namespace Lost_boy
 {
-    public class BasicLaser : Laser
+    public class PlasmaBullet : Laser
     {
-        public override event Action onDeath;
         private Rectangle drawable;
         private Vector size;
 
@@ -28,16 +26,10 @@ namespace Lost_boy
             }
         }
 
-        public override void AffectShip(IShip ship)
-        {
-            base.AffectShip(ship);
-            onDeath();
-        }
-
         public override void Draw(Graphics g, Pen p)
         {
             p.Color = Color;
-            g.DrawRectangle(p, drawable);
+            g.DrawEllipse(p, drawable);
         }
 
         public override void Move()
@@ -47,12 +39,12 @@ namespace Lost_boy
             drawable.Y = this.Position.Y;
         }
 
-        public BasicLaser(Vector pos, Direction dir) :
-            base(pos, new Vector(5, 10), dir, VALUES.BASIC_LASER_SPEED, VALUES.BASIC_LASER_DMG)
+        public PlasmaBullet(Vector pos, Direction dir) :
+            base(pos, new Vector(10, 10), dir, VALUES.BASIC_LASER_SPEED * 2, VALUES.BASIC_LASER_DMG / 2)
         {
-            this.Color = Color.Peru;
             this.size = Size;
             this.direction = dir;
+            this.Color = Color.Pink;
             drawable = new Rectangle(Position.X, Position.Y, size.X, size.Y);
         }
     }
