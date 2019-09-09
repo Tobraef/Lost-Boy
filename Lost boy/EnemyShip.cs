@@ -41,6 +41,14 @@ namespace Lost_boy
             }
         }
 
+        public void Heal(int val)
+        {
+            Health += val;
+            if (Health > MaxHealth)
+                Health = MaxHealth;
+            this.hpBar.HpChanged(Health);
+        }
+
         public int Health
         {
             get;
@@ -150,7 +158,7 @@ namespace Lost_boy
 
         public abstract void SetDefaultMoveStrategy();
 
-        public bool IsHit(IProjectile projectile)
+        public bool IsHit(IMover projectile)
         {
             return
                 this.Position.X < projectile.Position.X + projectile.Size.X &&
@@ -165,6 +173,7 @@ namespace Lost_boy
                  new Vector(),
                  new Vector(VALUES.ENEMY_WIDTH, VALUES.ENEMY_HEIGHT))
         {
+            this.shootingRandomizer = new Random(VALUES.random.Next());
             this.Health = VALUES.ENEMY_HEALTH;
             this.Defence = 0;
             this.onDamageTaken += (ref int val) => val -= Defence;

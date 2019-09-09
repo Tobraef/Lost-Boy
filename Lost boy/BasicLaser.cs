@@ -8,7 +8,7 @@ using Lost_boy.OnHits;
 
 namespace Lost_boy
 {
-    public class BasicLaser : Laser
+    public class BasicLaser : Bullet
     {
         public override event Action onDeath;
         private Rectangle drawable;

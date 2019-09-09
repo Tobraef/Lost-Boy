@@ -13,6 +13,7 @@ namespace Lost_boy
         public struct LevelInfoHolder
         {
             public int id;
+            public LevelType type;
             public List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> roadsToStarts;
             public List<List<string>> enemyShips;
         }
@@ -90,7 +91,7 @@ namespace Lost_boy
             private readonly List<LevelInfoHolder> levels = new List<LevelInfoHolder>();
             private List<List<string>> enemyShips = new List<List<string>>();
             private RoadSetup roadSetup;
-            private readonly string instructions = 
+            private readonly string instructions =
                     "1 - casual\n2 - frosty\n3 - triky\n4 - rocky\n" +
                     "Mouse - mid = begin, left = note point, right = close\n" +
                     "Space - save to file\n" +
@@ -130,6 +131,7 @@ namespace Lost_boy
             public void FinishLevel()
             {
                 LevelInfoHolder level = new LevelInfoHolder();
+                level.type = LevelType.Classic;
                 level.enemyShips = enemyShips;
                 level.roadsToStarts = new List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>>(roadSetup.GetRoads());
                 levels.Add(level);
@@ -137,6 +139,18 @@ namespace Lost_boy
                 enemyShips = new List<List<string>>();
             }
 
+            public void ThisLvlAsMeteor()
+            {
+                roadSetup = new RoadSetup();
+                enemyShips.Clear();
+                LevelInfoHolder level = new LevelInfoHolder();
+                level.type = LevelType.Meteor;
+                level.enemyShips.Add(new List<string>{new Meteor.MeteorDispenser(0).ToString()});
+                levels.Add(level);
+                roadSetup = new RoadSetup();
+                enemyShips = new List<List<string>>();
+            }
+        
             public void AppendEnemyToRoad(Enemies.EnemyTypes enemy)
             {
                 enemyShips.Last().Add(enemy.ToString());
@@ -155,11 +169,11 @@ namespace Lost_boy
                     .Where(line => line.Contains("==="))
                     .Last()
                     .Split(' ')
-                    .Last());
+                    .ElementAt(1));
                 StringBuilder sb = new StringBuilder();
                 foreach (var lvl in levels)
                 {
-                    sb.AppendLine("=== " + ++id);
+                    sb.AppendLine("=== " + ++id + lvl.type.ToString());
 
                     foreach (var eGroup in lvl.enemyShips)
                     {
@@ -190,6 +204,18 @@ namespace Lost_boy
 
         public class LevelReader
         {
+            private static LevelType ParseLevelType(string s)
+            {
+                switch (s)
+                {
+                    case "Classic":
+                        return LevelType.Classic;
+                    case "Meteor":
+                        return LevelType.Meteor;
+                }
+                throw new NotImplementedException("No such level type as " + s);
+            }
+
             public static LevelInfoHolder ReadLevel(string fileName, int levelId)
             {
                 var lines = File.ReadLines(fileName);
@@ -206,6 +232,7 @@ namespace Lost_boy
                 LevelInfoHolder lvl = new LevelInfoHolder
                 {
                     id = ++levelId,
+                    type = ParseLevelType(iter.Current.Split().Last()),
                     enemyShips = new List<List<string>>(),
                     roadsToStarts = new List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>>()
                 };

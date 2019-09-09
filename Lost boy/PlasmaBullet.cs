@@ -7,7 +7,7 @@ using System.Drawing;
 
 namespace Lost_boy
 {
-    public class PlasmaBullet : Laser
+    public class PlasmaBullet : Bullet
     {
         private Rectangle drawable;
         private Vector size;

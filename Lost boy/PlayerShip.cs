@@ -111,13 +111,18 @@ namespace Lost_boy
             rectangle.Y = Position.Y;
         }
 
-        public bool IsHit(IProjectile projectile)
+        public bool IsHit(IMover projectile)
         {
             return
                 this.Position.X < projectile.Position.X + projectile.Size.X &&
                 this.Position.X + this.Size.X > projectile.Position.X &&
                 this.Position.Y < projectile.Position.Y + projectile.Size.Y &&
                 this.Position.Y + this.Size.Y > projectile.Position.Y;
+        }
+
+        public void CleanupAfterLvl()
+        {
+            Weapon.Cleanup();
         }
 
         public PlayerShip() :

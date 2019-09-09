@@ -9,6 +9,7 @@ namespace Lost_boy
 {
     public abstract class Bonus : Mover, IProjectile
     {
+        public event Action<IProjectile> OnRecycle;
         private Rectangle drawable;
         protected Color color = Color.Blue;
         public event Action<IShip> onHits;
@@ -39,6 +40,11 @@ namespace Lost_boy
         }
 
         public abstract Bonus Clone(Vector position);
+
+        public void Recycle()
+        {
+            OnRecycle(this);
+        }
 
         public Bonus(Vector position, Action<IShip> e) :
             base(
@@ -167,7 +173,7 @@ namespace Lost_boy
         }
     }
 
-    public class ShipSpeedBonus: Bonus
+    public class ShipSpeedBonus : Bonus
     {
         public override Bonus Clone(Vector position)
         {

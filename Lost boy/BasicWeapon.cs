@@ -11,7 +11,14 @@ namespace Lost_boy
     public abstract class Weapon : IWeapon
     {
         private event OnShot onShot;
+        protected List<IProjectile> recycledShots = new List<IProjectile>();
         public virtual Action<IBullet> BulletAdder
+        {
+            protected get;
+            set;
+        }
+
+        public virtual Action<IBullet> RecycledBulletAdder
         {
             protected get;
             set;
@@ -36,6 +43,17 @@ namespace Lost_boy
             set;
         }
 
+        public void Cleanup()
+        {
+            recycledShots = new List<IProjectile>();
+            BulletAdder = null;
+            RecycledBulletAdder = null;
+            if (Ammo is ExplosiveBulletFactory)
+            {
+                ((ExplosiveBulletFactory)Ammo).BulletAdder = null;
+            }
+        }
+
         public void PullTheTrigger(Vector launchPosition)
         {
             if (isLoaded)
@@ -49,9 +67,16 @@ namespace Lost_boy
         {
             if (onShot != null)
                 onShot(bullet);
+            bullet.OnRecycle += RecyclingMethod;
+            bullet.onDeath += bullet.Recycle;
         }
 
         protected abstract void AddBullets(Vector launchPosition);
+
+        private void RecyclingMethod(IProjectile bullet)
+        {
+            recycledShots.Add(bullet);
+        }
 
         private void Reload()
         {
@@ -82,9 +107,20 @@ namespace Lost_boy
 
         protected override void AddBullets(Vector launchPosition)
         {
-            IBullet bullet = Ammo.Create(launchPosition);
-            ImbueBullet(bullet);
-            BulletAdder(bullet);
+            IBullet bullet;
+            if (recycledShots.Count > 0)
+            {
+                bullet = (IBullet)recycledShots.Last();
+                bullet.Position = launchPosition;
+                recycledShots.RemoveAt(recycledShots.Count - 1);
+                RecycledBulletAdder(bullet);
+            }
+            else
+            {
+                bullet = Ammo.Create(launchPosition);
+                ImbueBullet(bullet);
+                BulletAdder(bullet);
+            }
         }
 
         public SingleWeapon(IBulletFactory ammo) :
@@ -100,16 +136,35 @@ namespace Lost_boy
             set;
         }
 
+        private void SetBulletsPosition(IBullet leftBullet, IBullet rightBullet, Vector launchPosition)
+        {
+            leftBullet.Position = new Vector(launchPosition.X - leftBullet.Size.X, launchPosition.Y);
+            rightBullet.Position = new Vector(launchPosition.X + rightBullet.Size.X, launchPosition.Y);
+        }
+
         protected override void AddBullets(Vector launchPosition)
         {
-            IBullet leftBullet = Ammo.Create(launchPosition);
-            IBullet rightBullet = Ammo.Create(launchPosition);
-            leftBullet.Position = new Vector(leftBullet.Position.X - leftBullet.Size.X, leftBullet.Position.Y);
-            rightBullet.Position = new Vector(rightBullet.Position.X + rightBullet.Size.X, rightBullet.Position.Y);
-            ImbueBullet(leftBullet);
-            ImbueBullet(rightBullet);
-            BulletAdder(leftBullet);
-            BulletAdder(rightBullet);
+            IBullet leftBullet;
+            IBullet rightBullet;
+            if (recycledShots.Count > 1)
+            {
+                leftBullet = (IBullet)recycledShots[recycledShots.Count - 1];
+                rightBullet = (IBullet)recycledShots[recycledShots.Count - 2];
+                recycledShots.RemoveRange(recycledShots.Count - 2, 2);
+                SetBulletsPosition(leftBullet, rightBullet, launchPosition);
+                RecycledBulletAdder(leftBullet);
+                RecycledBulletAdder(rightBullet);
+            }
+            else
+            {
+                leftBullet = Ammo.Create(launchPosition);
+                rightBullet = Ammo.Create(launchPosition);
+                ImbueBullet(leftBullet);
+                ImbueBullet(rightBullet);
+                SetBulletsPosition(leftBullet, rightBullet, launchPosition);
+                BulletAdder(leftBullet);
+                BulletAdder(rightBullet);
+            }
         }
 
         public DoubleWeapon(IBulletFactory ammo) :
@@ -130,9 +185,20 @@ namespace Lost_boy
 
         protected override void AddBullets(Vector launchPosition)
         {
-            IBullet bullet = Ammo.Create(launchPosition);
-            ImbueBullet(bullet);
-            BulletAdder(bullet);
+            IBullet bullet;
+            if (recycledShots.Count > 0)
+            {
+                bullet = (IBullet)recycledShots.Last();
+                bullet.Position = launchPosition;
+                recycledShots.RemoveAt(recycledShots.Count - 1);
+                RecycledBulletAdder(bullet);
+            }
+            else
+            {
+                bullet = Ammo.Create(launchPosition);
+                ImbueBullet(bullet);
+                BulletAdder(bullet);
+            }
         }
 
         public SprayWeapon(IBulletFactory ammo) :
@@ -156,17 +222,36 @@ namespace Lost_boy
 
         protected override void AddBullets(Vector launchPosition)
         {
-            IBullet leftBullet = Ammo.Create(launchPosition);
-            IBullet middleBullet = Ammo.Create(launchPosition);
-            IBullet rightBullet = Ammo.Create(launchPosition);
-            leftBullet.Speed = new Vector(-5, leftBullet.Speed.Y);
-            rightBullet.Speed = new Vector(5, rightBullet.Speed.Y);
-            ImbueBullet(leftBullet);
-            ImbueBullet(middleBullet);
-            ImbueBullet(rightBullet);
-            BulletAdder(leftBullet);
-            BulletAdder(middleBullet);
-            BulletAdder(rightBullet);
+            IBullet leftBullet;
+            IBullet middleBullet;
+            IBullet rightBullet;
+            if (recycledShots.Count > 2)
+            {
+                leftBullet = (IBullet)recycledShots[recycledShots.Count - 1];
+                middleBullet = (IBullet)recycledShots[recycledShots.Count - 2];
+                rightBullet = (IBullet)recycledShots[recycledShots.Count - 3];
+                foreach (var b in recycledShots.Take(3)) b.Position = launchPosition;
+                recycledShots.RemoveRange(recycledShots.Count - 3, 3);
+                leftBullet.Speed = new Vector(-5, leftBullet.Speed.Y);
+                rightBullet.Speed = new Vector(5, rightBullet.Speed.Y);
+                RecycledBulletAdder(leftBullet);
+                RecycledBulletAdder(middleBullet);
+                RecycledBulletAdder(rightBullet);
+            }
+            else
+            {
+                leftBullet = Ammo.Create(launchPosition);
+                middleBullet = Ammo.Create(launchPosition);
+                rightBullet = Ammo.Create(launchPosition);
+                leftBullet.Speed = new Vector(-5, leftBullet.Speed.Y);
+                rightBullet.Speed = new Vector(5, rightBullet.Speed.Y);
+                ImbueBullet(leftBullet);
+                ImbueBullet(middleBullet);
+                ImbueBullet(rightBullet);
+                BulletAdder(leftBullet);
+                BulletAdder(middleBullet);
+                BulletAdder(rightBullet);
+            }
         }
 
         public TripleWeapon(IBulletFactory ammo) :

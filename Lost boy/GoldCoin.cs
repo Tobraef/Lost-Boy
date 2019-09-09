@@ -11,6 +11,7 @@ namespace Lost_boy
     {
         private Color color = Color.Gold;
         private Rectangle drawable;
+        public event Action<IProjectile> OnRecycle;
         public event Action<IShip> onHits;
         public event Action onDeath;
 
@@ -36,6 +37,11 @@ namespace Lost_boy
         {
             p.Color = color;
             g.DrawEllipse(p, drawable);
+        }
+
+        public void Recycle()
+        {
+            OnRecycle(this);
         }
 
         public GoldCoin(Vector position, int ammount)

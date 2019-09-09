@@ -18,6 +18,8 @@ using System.Drawing;
  * REFACTOR
  * falling strategy -> infinite timer
  * writing to file -> increment last lvl id, not start over from 1 (done, needs testing)
+ * recycling meteors
+ * toRemoveProjectiles should remove by id or something. Definetly it shouldnt check both lists
  * 
  * MAYBE
  * clear interfaces, not to expose unnecessary stuff
@@ -64,7 +66,8 @@ namespace Lost_boy
 
     public enum LevelType
     {
-        Classic
+        Classic,
+        Meteor
     }
 
     public static class VALUES
@@ -84,19 +87,21 @@ namespace Lost_boy
 
         public const int ENEMY_HEIGHT = 30;
         public const int ENEMY_WIDTH = 30;
-        public const int ENEMY_HEALTH = 100;
+        public const int ENEMY_HEALTH = 10;
         public const int ENEMY_FALLING_SPEED = 5;
 
         public const int TICK_INTERVAL = 3000; //milis
 
         public const int BASIC_WEAPON_RELOAD_TIME = 300;
 
-        public const int BASIC_LASER_RECHARGE = 200;
+        public const int BASIC_LASER_RECHARGE = 350;
         public const int BASIC_LASER_DMG = 10;
-        public const int BASIC_LASER_SPEED = 10;
+        public const int BASIC_LASER_SPEED = 20;
         public const int BASIC_LASER_BURN_DMG = 5;
         public const int BASIC_LASER_BURN_TICKS = 3;
         public const int BASIC_LASER_BURN_CHANCE = 20;
+
+        public const int PLASMA_SPEED = 20;
 
         public const int BONUS_SPEED = 15;
         public const int BONUS_SIZE = 15;
@@ -105,6 +110,11 @@ namespace Lost_boy
 
         public const int GOLD_DROP_CHANCE = 50;
         public const int GOLD_AVERAGE_VALUE = 50;
+
+        public const int METEOR_MIN_SIZE = 25;
+        public const int METEOR_MAX_SIZE = 100;
+        public const int METEOR_AVG_DMG = 25;
+        public const int METEOR_AVG_SPEED = 20;
     }
 
     public interface IMover
@@ -150,6 +160,8 @@ namespace Lost_boy
         event Action<IShip> onHits;
         void AffectShip(IShip ship);
         event Action onDeath;
+        event Action<IProjectile> OnRecycle;
+        void Recycle();
     }
 
     public interface IBullet : IProjectile
@@ -180,7 +192,12 @@ namespace Lost_boy
 
     public interface IWeapon
     {
+        void Cleanup();
         Action<IBullet> BulletAdder
+        {
+            set;
+        }
+        Action<IBullet> RecycledBulletAdder
         {
             set;
         }
@@ -198,14 +215,8 @@ namespace Lost_boy
         void AppendOnShot(OnShots.OnShot e);
     }
 
-    public interface IShip : IMover
+    public interface IBody
     {
-        event Action onDeath;
-        IWeapon Weapon
-        {
-            get;
-            set;
-        }
         int MaxHealth
         {
             get;
@@ -214,9 +225,21 @@ namespace Lost_boy
         int Health
         {
             get;
-            set;
         }
         int Defence
+        {
+            get;
+            set;
+        }
+        void TakeDamage(int val);
+        void TakeTrueDamage(int val);
+        void Heal(int val);
+    }
+
+    public interface IShip : IMover, IBody
+    {
+        event Action onDeath;
+        IWeapon Weapon
         {
             get;
             set;
@@ -232,9 +255,7 @@ namespace Lost_boy
             set;
         }
         void Shoot();
-        void TakeDamage(int val);
-        void TakeTrueDamage(int val);
-        bool IsHit(IProjectile projectile);
+        bool IsHit(IMover projectile);
     }
 
     public interface IMovementStrategy
@@ -289,10 +310,6 @@ namespace Lost_boy
         {
             set;
         }
-        List<EnemyShip> Enemies
-        {
-            set;
-        }
         string Description
         {
             set;
@@ -310,9 +327,7 @@ namespace Lost_boy
         ILevelBuilder CreateEnemy(Enemies.EnemyTypes type);
         ILevelBuilder SetDroppable(Dictionary<Bonus, int> set);
         ILevelBuilder SetDifficulty(Difficulty difficulty, int id);
-        ILevelBuilder SetStrategyForCurrentEnemies(
-            Vector start, IEnumerable<KeyValuePair<Vector, int>> ms, int delay);
-        ILevelBuilder SetEnemyGroup(List<EnemyShip> group);
+        ILevelBuilder SetContent(Setup.LevelInfoHolder info);
         ILevelBuilder SetFinishedAction(Action<bool> action);
         ILevel Build();
 

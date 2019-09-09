@@ -52,10 +52,11 @@
     <Compile Include="Bonus.cs" />
     <Compile Include="BulletFactory.cs" />
     <Compile Include="EnemyShip.cs" />
+    <Compile Include="ExplosiveBullet.cs" />
     <Compile Include="GoldCoin.cs" />
     <Compile Include="Grocery.cs" />
     <Compile Include="HPBar.cs" />
-    <Compile Include="Laser.cs" />
+    <Compile Include="Bullet.cs" />
     <Compile Include="Effect.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -64,10 +65,15 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Interfaces.cs" />
-    <Compile Include="Level.cs" />
+    <Compile Include="ClassicLevel.cs" />
+    <Compile Include="LevelBuilder.cs" />
     <Compile Include="LevelSetup.cs" />
+    <Compile Include="Meteor.cs" />
+    <Compile Include="MeteorDispenser.cs" />
+    <Compile Include="MeteorLevel.cs" />
     <Compile Include="MovementStrategy.cs" />
     <Compile Include="Mover.cs" />
+    <Compile Include="PlasmaBullet.cs" />
     <Compile Include="PlayerShip.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

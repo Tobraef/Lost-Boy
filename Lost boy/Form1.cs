@@ -122,57 +122,25 @@ namespace Lost_boy
             }
         }
 
-        private EnemyShip ParseEnemy(string txt, PlayerShip p)
-        {
-            switch (txt)
-            {
-                case "Casual":
-                    return new CasualEnemy(new Vector());
-                case "Frosty":
-                    return new FrostyEnemy(new Vector());
-                case "Rocky":
-                    return new RockyEnemy(new Vector());
-                case "Tricky":
-                    return new TrickyEnemy(p, new Vector());
-            }
-            return null;
-        }
-
-        private List<EnemyShip> ParseEnemies(List<string> enemyShips)
-        {   
-            return enemyShips.Select(name => ParseEnemy(name,player)).ToList();
-        }
-
         private void SetLevel(Setup.LevelInfoHolder info)
         {
-            var enemiesIter = info.enemyShips.GetEnumerator();
-            var roadsToStartsIter = info.roadsToStarts.GetEnumerator();
-            builder = new LevelBuilder(LevelType.Classic);
+            builder = new ClassicLevelBuilder();
             builder
                 .SetPlayer(player)
                 .SetDescription("Testing level")
                 .SetDifficulty(Difficulty.Normal, lvlId)
                 .SetDroppable(GetTestDrop())
-                .SetFinishedAction(LevelFinishedAction);
-            while (enemiesIter.MoveNext() && roadsToStartsIter.MoveNext())
-            {
-                builder
-                    .SetEnemyGroup(ParseEnemies(enemiesIter.Current))
-                    .SetStrategyForCurrentEnemies(
-                    roadsToStartsIter.Current.Key,
-                    roadsToStartsIter.Current.Value,
-                    5);
-            }
+                .SetFinishedAction(LevelFinishedAction)
+                .SetContent(info);
             level = builder.Build();
         }
 
         private void InitializePlayer()
         {
             player = new PlayerShip();
-            player.Weapon = new TripleWeapon(new BasicLaserFactory(Direction.Up));
+            player.Weapon = new DoubleWeapon(new BasicLaserFactory(Direction.Up));
             // testing site below
-            player.Weapon.Ammo = new PlasmaFactory(Direction.Up);
-            player.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(10, 3, 20));
+            player.Weapon.Ammo = new FrostyLaserFactory(Direction.Up);
         }
 
         private List<EnemyShip> GetTestEnemy()
@@ -247,7 +215,11 @@ namespace Lost_boy
                 this.KeyDown += SetupKeyHandle;
             }
             InitializePlayer();
-            LoadNextLevel();
+            // LoadNextLevel();
+            level = new Meteor.MeteorLevel();
+            ((Meteor.MeteorLevel)level).Player = player;
+            ((Meteor.MeteorLevel)level).SetDroppables(GetTestDrop(), Difficulty.Hard);
+            level.Begin();
             PLAY();
             this.KeyUp += KeyUps;
             this.Paint += PaintGame;
