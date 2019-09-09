@@ -124,26 +124,4 @@ namespace Lost_boy
             this.AppendDmgModifier((ref int i) => i += 5);
         }
     }
-
-    namespace Meteor
-    {
-        public class MeteorFactory
-        {
-            public IProjectile CreateRandom()
-            {
-                var r = VALUES.random;
-                return new Meteor(
-                    new Vector(r.Next(0, VALUES.WIDTH), 0),
-                    new Vector(r.Next(-10, 10), r.Next(VALUES.METEOR_AVG_SPEED - 5, VALUES.METEOR_AVG_SPEED + 5)),
-                    new Vector(r.Next(VALUES.METEOR_MIN_SIZE, VALUES.METEOR_MAX_SIZE),
-                        r.Next(VALUES.METEOR_MIN_SIZE, VALUES.METEOR_MAX_SIZE)),
-                        r.Next(VALUES.METEOR_AVG_DMG - 10, VALUES.METEOR_AVG_DMG + 10));
-            }
-
-            public IProjectile Create(Vector where, Vector speed, Vector size, int dmg)
-            {
-                return new Meteor(where, speed, size, dmg);
-            }
-        }
-    }
 }

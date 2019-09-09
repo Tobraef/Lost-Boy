@@ -323,8 +323,6 @@ namespace Lost_boy
     {
         ILevelBuilder SetDescription(string description);
         ILevelBuilder SetPlayer(PlayerShip ship);
-        ILevelBuilder AppendEnemy(EnemyShip ship);
-        ILevelBuilder CreateEnemy(Enemies.EnemyTypes type);
         ILevelBuilder SetDroppable(Dictionary<Bonus, int> set);
         ILevelBuilder SetDifficulty(Difficulty difficulty, int id);
         ILevelBuilder SetContent(Setup.LevelInfoHolder info);

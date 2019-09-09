@@ -85,7 +85,7 @@ namespace Lost_boy.Meteor
             base(position, speed, new Vector(), size)
         {
             Direction = Direction.Down;
-            onHits += new OnHits.SlowEffect(3);
+            onHits += new OnHits.SlowEffect(2);
             damage = dmg;
         }
     }

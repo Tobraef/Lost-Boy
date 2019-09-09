@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace Lost_boy.Meteor
 {
     public class MeteorLevel : ILevel
     {
         private MeteorDispenser dispenser = new MeteorDispenser(0);
+        private bool waveTime = true;
         private Dictionary<Bonus, int> droppables = new Dictionary<Bonus,int>();
         private List<IProjectile> projectiles = new List<IProjectile>();
         private List<IProjectile> toRemoveProjectiles = new List<IProjectile>();
@@ -84,15 +85,36 @@ namespace Lost_boy.Meteor
 
         private void DropRandomBonuses()
         {
-            projectiles.AddRange(
-            droppables
-                .Where(pair => VALUES.random.Next(100) < pair.Value)
-                .Select(pair => pair.Key.Clone(new Vector(VALUES.random.Next(VALUES.WIDTH), 0)))
-                );
+            int choice = VALUES.random.Next(3);
+            if (choice == 1)
+            {
+                MeteorAdder(new GoldCoin(new Vector(VALUES.random.Next(VALUES.WIDTH), 0), 50));
+            }
+            else if (choice == 2)
+            {
+                MeteorAdder(new HealthBonus(new Vector(VALUES.random.Next(VALUES.WIDTH), 0)));
+            }
+            try
+            {
+                var drop = droppables
+                    .First(pair => VALUES.random.Next(100) < pair.Value).Key;
+                MeteorAdder(drop.Clone(new Vector(VALUES.random.Next(VALUES.WIDTH), 0)));
+            }
+            catch (InvalidOperationException e) { return; }
         }
 
         public void Elapse()
         {
+            if (waveTime)
+            {
+                dispenser.GenerateMeteorWave();
+                waveTime = false;
+                new Thread(() =>
+                    {
+                        Thread.Sleep(5000);
+                        waveTime = true;
+                    }).Start();
+            }
             if (VALUES.random.Next(100) < 30)
                 dispenser.ShootMeteor();
             if (VALUES.random.Next(100) < 10)

@@ -149,50 +149,52 @@ namespace Lost_boy
     {
         public class MeteorLevelBuilder : ILevelBuilder
         {
+            private MeteorLevel level = new MeteorLevel();
+            private Difficulty difficulty;
+            private Dictionary<Bonus, int> set;
+            private int id;
 
             public ILevelBuilder SetDescription(string description)
             {
-                throw new NotImplementedException();
+                this.level.Description = description;
+                return this;
             }
 
             public ILevelBuilder SetPlayer(PlayerShip ship)
             {
-                throw new NotImplementedException();
-            }
-
-            public ILevelBuilder AppendEnemy(EnemyShip ship)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ILevelBuilder CreateEnemy(Enemies.EnemyTypes type)
-            {
-                throw new NotImplementedException();
+                this.level.Player = ship;
+                return this;
             }
 
             public ILevelBuilder SetDroppable(Dictionary<Bonus, int> set)
             {
-                throw new NotImplementedException();
+                this.set = set;
+                return this;
             }
 
             public ILevelBuilder SetDifficulty(Difficulty difficulty, int id)
             {
-                throw new NotImplementedException();
+                this.difficulty = difficulty;
+                this.id = id;
+                return this;
             }
 
             public ILevelBuilder SetContent(Setup.LevelInfoHolder info)
             {
-                throw new NotImplementedException();
+                this.level.AdjustToDifficulty(difficulty, id);
+                return this;
             }
 
             public ILevelBuilder SetFinishedAction(Action<bool> action)
             {
-                throw new NotImplementedException();
+                this.level.Finished += action;
+                return this;
             }
 
             public ILevel Build()
             {
-                throw new NotImplementedException();
+                this.level.SetDroppables(set, difficulty);
+                return level;
             }
         }
     }
