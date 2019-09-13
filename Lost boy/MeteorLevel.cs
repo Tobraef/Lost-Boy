@@ -10,7 +10,7 @@ namespace Lost_boy.Meteor
     {
         private MeteorDispenser dispenser = new MeteorDispenser(0);
         private bool waveTime = true;
-        private Dictionary<Bonus, int> droppables = new Dictionary<Bonus,int>();
+        private Dictionary<Bonus, int> droppables = new Dictionary<Bonus, int>();
         private List<IProjectile> projectiles = new List<IProjectile>();
         private List<IProjectile> toRemoveProjectiles = new List<IProjectile>();
 
@@ -28,9 +28,9 @@ namespace Lost_boy.Meteor
             set;
         }
 
-        public void AdjustToDifficulty(Difficulty diff, int id)
+        public void AdjustToDifficulty(Difficulty diff)
         {
-            dispenser.SetDifficulty(diff, id);
+            dispenser.SetDifficulty(diff);
         }
 
         public void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff)
@@ -103,22 +103,8 @@ namespace Lost_boy.Meteor
             catch (InvalidOperationException e) { return; }
         }
 
-        public void Elapse()
+        private void HandleLogic_elapse()
         {
-            if (waveTime)
-            {
-                dispenser.GenerateMeteorWave();
-                waveTime = false;
-                new Thread(() =>
-                    {
-                        Thread.Sleep(5000);
-                        waveTime = true;
-                    }).Start();
-            }
-            if (VALUES.random.Next(100) < 30)
-                dispenser.ShootMeteor();
-            if (VALUES.random.Next(100) < 10)
-                DropRandomBonuses();
             Player.Move();
             foreach (var meteor in projectiles)
             {
@@ -132,15 +118,55 @@ namespace Lost_boy.Meteor
                     meteor.AffectShip(Player);
                 }
             }
-            foreach (var meteor in toRemoveProjectiles)
-            {
-                projectiles.Remove(meteor);
-            }
+        }
 
+        private void AddStuff_elapse()
+        {
+            if (waveTime)
+            {
+                dispenser.GenerateMeteorWave();
+                waveTime = false;
+                new Thread(() =>
+                {
+                    Thread.Sleep(5000);
+                    waveTime = true;
+                }).Start();
+            }
+            if (VALUES.random.Next(100) < 30)
+                dispenser.ShootMeteor();
+            if (VALUES.random.Next(100) < 10)
+                DropRandomBonuses();
+        }
+
+        private void CheckConditions_elapse()
+        {
             if (dispenser.LeftMeteors < 1)
                 Finished(true);
             if (Player.Health < 0)
                 Finished(false);
+        }
+
+        public void HandlePlayer_Mouse(System.Windows.Forms.MouseEventArgs where)
+        { }
+
+        private void Clean_elapse()
+        {
+            foreach (var meteor in toRemoveProjectiles)
+            {
+                projectiles.Remove(meteor);
+            }
+        }
+
+        public void PrepareNextStage()
+        {
+            Clean_elapse();
+            AddStuff_elapse();
+            CheckConditions_elapse();
+        }
+
+        public void Elapse()
+        {
+            HandleLogic_elapse();
         }
 
         public void Draw(System.Drawing.Graphics g, System.Drawing.Pen p)

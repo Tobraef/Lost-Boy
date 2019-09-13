@@ -141,10 +141,10 @@ namespace Lost_boy
     {
         public BurnEffect(int value, int ticks) :
             base(ship =>
-                {
-                    if (ship.Health > 0)
-                        ship.TakeTrueDamage(value);
-                }, ticks)
+            {
+                if (ship.Health > 0)
+                    ship.TakeTrueDamage(value);
+            }, ticks)
         { }
     }
 }

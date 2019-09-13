@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.Windows.Forms;
 
 /*TODOS
  * NEW FEATURES
@@ -14,16 +15,18 @@ using System.Drawing;
  * implement graphics
  * implement new level types
  * implement new ammo types
+ * implement events
  * 
  * REFACTOR
  * falling strategy -> infinite timer
  * writing to file -> increment last lvl id, not start over from 1 (done, needs testing)
  * recycling meteors
- * toRemoveProjectiles should remove by id or something. Definetly it shouldnt check both lists
  * 
  * MAYBE
+ * lvls with tiers
  * clear interfaces, not to expose unnecessary stuff
  * implement secondary weapon
+ * synchronous draw with logic
 */
 
 namespace Lost_boy
@@ -64,10 +67,18 @@ namespace Lost_boy
         Hard
     }
 
+    public enum Tier
+    {
+        T1,
+        T2,
+        T3
+    }
+
     public enum LevelType
     {
         Classic,
-        Meteor
+        Meteor,
+        Event
     }
 
     public static class VALUES
@@ -115,6 +126,8 @@ namespace Lost_boy
         public const int METEOR_MAX_SIZE = 100;
         public const int METEOR_AVG_DMG = 25;
         public const int METEOR_AVG_SPEED = 20;
+
+        public const int MAX_LVL_ID = 3;
     }
 
     public interface IMover
@@ -299,8 +312,10 @@ namespace Lost_boy
         event Action<bool> Finished;
         void HandlePlayer(char key);
         void HandlePlayer_KeyUp(char key);
+        void HandlePlayer_Mouse(MouseEventArgs m);
         void Begin();
         void Elapse();
+        void PrepareNextStage();
         void Draw(Graphics g, Pen p);
     }
 
@@ -315,7 +330,7 @@ namespace Lost_boy
             set;
             get;
         }
-        void AdjustToDifficulty(Difficulty diff, int id);
+        void AdjustToDifficulty(Difficulty diff);
         void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff);
     }
 
@@ -323,8 +338,6 @@ namespace Lost_boy
     {
         ILevelBuilder SetDescription(string description);
         ILevelBuilder SetPlayer(PlayerShip ship);
-        ILevelBuilder SetDroppable(Dictionary<Bonus, int> set);
-        ILevelBuilder SetDifficulty(Difficulty difficulty, int id);
         ILevelBuilder SetContent(Setup.LevelInfoHolder info);
         ILevelBuilder SetFinishedAction(Action<bool> action);
         ILevel Build();

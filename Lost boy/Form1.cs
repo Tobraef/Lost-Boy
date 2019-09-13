@@ -13,11 +13,14 @@ namespace Lost_boy
     public partial class Form1 : Form
     {
         IPlayAble level;
-        private int lvlId;
         PlayerShip player;
         Timer timer;
         Setup.LevelSetup setup;
-        ILevelBuilder builder;
+        private int playerStar = 1;
+        private readonly List<int> emptyStars = new List<int>();
+
+        private readonly string STAR_MAP_FILE = System.IO.Directory.GetCurrentDirectory() + @"\StarMapFile.txt";
+
         private void KeyHandle(object sender, KeyEventArgs args)
         {
             switch (args.KeyCode)
@@ -31,9 +34,8 @@ namespace Lost_boy
                 case Keys.S:
                     level.HandlePlayer('S');
                     break;
-                case Keys.Tab:
-                    // forbidden
-                    LoadNextLevel();
+                case Keys.Space:
+                    level.HandlePlayer(' ');
                     break;
                 default:
                     break;
@@ -59,9 +61,6 @@ namespace Lost_boy
                 case Keys.Space:
                     string path = System.IO.Directory.GetCurrentDirectory();
                     setup.SaveLevelsToFile(path + @"\LevelFile.txt");
-                    break;
-                case Keys.Tab:
-                    LoadNextLevel();
                     break;
                 case Keys.N:
                     setup.FinishLevel();
@@ -103,11 +102,20 @@ namespace Lost_boy
             }
         }
 
+        private void LevelMouseHandle(object sender, MouseEventArgs m)
+        {
+            level.HandlePlayer_Mouse(m);
+        }
+
         private void Elapse(object sender, EventArgs e)
         {
-            if (setup == null)
-                level.Elapse();
-            this.Refresh();
+            level.Elapse();
+            Refresh();
+            //Task logic = new Task(level.Elapse);
+            //Task drawing = new Task(this.Refresh);
+            //Task.Run(level.Elapse);
+            //Task.Run(Refresh);
+            level.PrepareNextStage();
         }
 
         private void PaintGame(object sender, PaintEventArgs e)
@@ -122,14 +130,11 @@ namespace Lost_boy
             }
         }
 
-        private void SetLevel(Setup.LevelInfoHolder info)
+        private void SetLevel(Setup.LevelInfoHolder info, ILevelBuilder builder)
         {
-            builder = new ClassicLevelBuilder();
             builder
                 .SetPlayer(player)
                 .SetDescription("Testing level")
-                .SetDifficulty(Difficulty.Normal, lvlId)
-                .SetDroppable(GetTestDrop())
                 .SetFinishedAction(LevelFinishedAction)
                 .SetContent(info);
             level = builder.Build();
@@ -143,51 +148,48 @@ namespace Lost_boy
             player.Weapon.Ammo = new FrostyLaserFactory(Direction.Up);
         }
 
-        private List<EnemyShip> GetTestEnemy()
-        {
-            return new List<EnemyShip>
-            {
-                new RockyEnemy(new Vector(VALUES.WIDTH / 5,150)),
-                new RockyEnemy(new Vector(VALUES.WIDTH * 2 / 5,150)),
-                new RockyEnemy(new Vector(VALUES.WIDTH * 3 / 5,150)),
-                new RockyEnemy(new Vector(VALUES.WIDTH * 4 / 5,150)),
-                new FrostyEnemy(new Vector(450,50)),
-                new FrostyEnemy(new Vector(550,50)),
-                new FrostyEnemy(new Vector(650,50)),
-                new FrostyEnemy(new Vector(750,50)),
-                new TrickyEnemy(player, new Vector(50, 300)),
-                new TrickyEnemy(player, new Vector(300, 300))
-            };
-        }
-
-        private Dictionary<Bonus, int> GetTestDrop()
-        {
-            Dictionary<Bonus, int> drop = new Dictionary<Bonus, int>();
-            drop.Add(new BulletSizeChangeBonus(new Vector()), 10);
-            drop.Add(new BulletSpeedBonus(new Vector()), 10);
-            drop.Add(new BurnBonus(new Vector()), 10);
-            drop.Add(new HealthBonus(new Vector()), 10);
-            drop.Add(new LaserDamageBonus(new Vector()), 10);
-            drop.Add(new WeaponReloadTimeBonus(new Vector()), 10);
-            drop.Add(new ShipSpeedBonus(new Vector()), 10);
-            drop.Add(new ArmorMeltBonus(new Vector()), 10);
-            drop.Add(new FrostBonus(new Vector()), 10);
-            return drop;
-        }
-
         private void PLAY()
         {
             setup = null;
             this.KeyDown -= SetupKeyHandle;
             this.MouseClick -= MousePop;
             this.KeyDown += KeyHandle;
+            this.MouseClick += LevelMouseHandle;
         }
 
-        private void LoadNextLevel()
+        private void ActivateStarMap()
         {
-            string pathing = System.IO.Directory.GetCurrentDirectory();
-            var lvlInfo = Setup.LevelReader.ReadLevel(pathing + @"\LevelFile.txt", ++lvlId);
-            SetLevel(lvlInfo);
+            level = new StarMap(playerStar, STAR_MAP_FILE, emptyStars, PrepareNextLevel);
+        }
+
+        private void PrepareNextLevel(Setup.LevelInfoHolder info)
+        {
+            emptyStars.Add(playerStar);
+            playerStar = info.id;
+            LoadNextLevel(info);
+        }
+
+        private void LoadNextLevel(Setup.LevelInfoHolder info)
+        {
+            ILevelBuilder builder = null;
+            if (info.type == LevelType.Classic)
+            {
+                string pathing = System.IO.Directory.GetCurrentDirectory();
+                var lvlInfo = Setup.LevelReader.ReadLevel(pathing + @"\LevelFile.txt", VALUES.random.Next(1, VALUES.MAX_LVL_ID + 1));
+                lvlInfo.id = info.id;
+                lvlInfo.tier = info.tier;
+                lvlInfo.type = info.type;
+                builder = new ClassicLevelBuilder();
+                SetLevel(lvlInfo, builder);
+            }
+            else
+            {
+                if (info.type == LevelType.Meteor)
+                    builder = new Meteor.MeteorLevelBuilder();
+                else if (info.type == LevelType.Event)
+                    ;// builder = new EventLevelBuilder();
+                SetLevel(info, builder);
+            }
             level.Begin();
         }
 
@@ -195,7 +197,7 @@ namespace Lost_boy
         {
             if (playerWon)
             {
-                LoadNextLevel();
+                ActivateStarMap();
             }
             else
             {
@@ -216,9 +218,8 @@ namespace Lost_boy
             }
             InitializePlayer();
             // LoadNextLevel();
-            level = new Meteor.MeteorLevel();
-            ((Meteor.MeteorLevel)level).Player = player;
-            ((Meteor.MeteorLevel)level).SetDroppables(GetTestDrop(), Difficulty.Hard);
+            StarMap.GenerateRandomMap(STAR_MAP_FILE, 100);
+            level = new StarMap(playerStar, STAR_MAP_FILE, new List<int>{ }, PrepareNextLevel);
             level.Begin();
             PLAY();
             this.KeyUp += KeyUps;

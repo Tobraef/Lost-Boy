@@ -16,7 +16,8 @@ namespace Lost_boy
 
         private List<IProjectile> toAddPlayerProjectiles = new List<IProjectile>();
 
-        private List<IProjectile> toRemoveProjectiles = new List<IProjectile>();
+        private List<IProjectile> toRemovePlayerProjectiles = new List<IProjectile>();
+        private List<IProjectile> toRemoveEnemyProjectiles = new List<IProjectile>();
 
         public PlayerShip Player
         {
@@ -42,7 +43,7 @@ namespace Lost_boy
             set;
         }
 
-        public void AdjustToDifficulty(Difficulty diff, int difficultyStage)
+        public void AdjustToDifficulty(Difficulty diff)
         {
             switch (diff)
             {
@@ -70,18 +71,6 @@ namespace Lost_boy
                         enemy.Weapon.Ammo.AppendDmgModifier((ref int damage) => damage *= 2);
                     }
                     break;
-            }
-            difficultyStage += 10;
-            foreach (var enemy in Enemies)
-            {
-                enemy.MaxHealth *= difficultyStage;
-                enemy.MaxHealth /= 10;
-                enemy.Weapon.Ammo.AppendDmgModifier((ref int damage) =>
-                {
-                    damage *= difficultyStage;
-                    damage /= 10;
-                });
-                enemy.Defence += difficultyStage;
             }
         }
 
@@ -198,12 +187,15 @@ namespace Lost_boy
             }
             toRemoveEnemies.Clear();
 
-            foreach (var bullet in toRemoveProjectiles)
+            foreach (var bullet in toRemovePlayerProjectiles)
             {
-                enemyProjectiles.Remove(bullet);
                 playersProjectiles.Remove(bullet);
             }
-            toRemoveProjectiles.Clear();
+            toRemovePlayerProjectiles.Clear();
+            foreach (var bullet in toRemoveEnemyProjectiles)
+            {
+                enemyProjectiles.Remove(bullet);
+            }
         }
 
         private void CheckConditions_elapse()
@@ -212,6 +204,11 @@ namespace Lost_boy
                 Finished(false);
             if (Enemies.Count + enemyProjectiles.Count == 0)
                 Finished(true);
+        }
+
+        public void PrepareNextStage()
+        {
+
         }
 
         public void Elapse()
@@ -264,7 +261,7 @@ namespace Lost_boy
 
         private void PlayerBulletAdder(IProjectile bullet)
         {
-            bullet.OnRecycle += toRemoveProjectiles.Add;
+            bullet.OnRecycle += toRemovePlayerProjectiles.Add;
             toAddPlayerProjectiles.Add(bullet);
         }
 
@@ -275,7 +272,7 @@ namespace Lost_boy
 
         private void EnemyBulletAdder(IProjectile bullet)
         {
-            bullet.OnRecycle += toRemoveProjectiles.Add;
+            bullet.OnRecycle += toRemoveEnemyProjectiles.Add;
             enemyProjectiles.Add(bullet);
         }
 
@@ -283,6 +280,9 @@ namespace Lost_boy
         {
             enemyProjectiles.Add(bullet);
         }
+
+        public void HandlePlayer_Mouse(System.Windows.Forms.MouseEventArgs where)
+        { }
 
         private void SetEnemies()
         {
@@ -307,7 +307,8 @@ namespace Lost_boy
             enemyProjectiles.Clear();
             playersProjectiles.Clear();
             toAddPlayerProjectiles.Clear();
-            toRemoveProjectiles.Clear();
+            toRemovePlayerProjectiles.Clear();
+            toRemoveEnemyProjectiles.Clear();
             Player.CleanupAfterLvl();
         }
 

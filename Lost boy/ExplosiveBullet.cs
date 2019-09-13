@@ -105,8 +105,8 @@ namespace Lost_boy
         private void Explode()
         {
             BulletAdder(new Explosion(explosionDamage, new Vector(
-                this.Position.X - 3*this.Size.X,
-                this.Position.Y - 3*this.Size.Y),
+                this.Position.X - 3 * this.Size.X,
+                this.Position.Y - 3 * this.Size.Y),
                 this.Size.Y * 8));
         }
 
@@ -131,7 +131,7 @@ namespace Lost_boy
         }
 
         public ExplosiveBullet(Action<IProjectile> bulletAdder, Direction dir, Vector position) :
-            base(position, new Vector(25, 25), dir, VALUES.BASIC_LASER_SPEED /2, 30)
+            base(position, new Vector(25, 25), dir, VALUES.BASIC_LASER_SPEED / 2, 30)
         {
             this.explosionDamage = 25;
             this.BulletAdder = bulletAdder;
