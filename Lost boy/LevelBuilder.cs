@@ -9,54 +9,13 @@ namespace Lost_boy
     public class ClassicLevelBuilder : ILevelBuilder
     {
         private ClassicLevel lvl;
-        private Difficulty difficulty;
-        private int difficultyId;
         PlayerShip player;
         private List<EnemyShip> enemies = new List<EnemyShip>();
         private List<EnemyShip> enemiesWithSetStrategies = new List<EnemyShip>();
-        private Dictionary<Bonus, int> drop = new Dictionary<Bonus, int>();
-        public ILevelBuilder SetDroppable(Dictionary<Bonus, int> set)
-        {
-            this.drop = set;
-            return this;
-        }
-
-        public ILevelBuilder AppendEnemy(EnemyShip ship)
-        {
-            enemies.Add(ship);
-            return this;
-        }
-
-        public ILevelBuilder CreateEnemy(Enemies.EnemyTypes type)
-        {
-            switch (type)
-            {
-                case Enemies.EnemyTypes.Casual:
-                    enemies.Add(new CasualEnemy(new Vector()));
-                    break;
-                case Enemies.EnemyTypes.Frosty:
-                    enemies.Add(new FrostyEnemy(new Vector()));
-                    break;
-                case Enemies.EnemyTypes.Rocky:
-                    enemies.Add(new RockyEnemy(new Vector()));
-                    break;
-                case Enemies.EnemyTypes.Tricky:
-                    enemies.Add(new TrickyEnemy(player, new Vector()));
-                    break;
-            }
-            return this;
-        }
 
         public ILevelBuilder SetDescription(string description)
         {
             this.lvl.Description = description;
-            return this;
-        }
-
-        public ILevelBuilder SetDifficulty(Difficulty difficulty, int id)
-        {
-            this.difficultyId = id;
-            this.difficulty = difficulty;
             return this;
         }
 
@@ -71,7 +30,7 @@ namespace Lost_boy
             enemies.AddRange(group);
         }
 
-        private EnemyShip ParseEnemy(string txt, PlayerShip p)
+        private EnemyShip ParseEnemy(string txt, PlayerShip p, Tier tier)
         {
             switch (txt)
             {
@@ -87,9 +46,9 @@ namespace Lost_boy
             return null;
         }
 
-        private List<EnemyShip> ParseEnemies(List<string> enemyShips)
+        private List<EnemyShip> ParseEnemies(List<string> enemyShips, Tier tier)
         {
-            return enemyShips.Select(name => ParseEnemy(name, player)).ToList();
+            return enemyShips.Select(name => ParseEnemy(name, player, tier)).ToList();
         }
 
         private void SetStrategyForCurrentEnemies(Vector start, IEnumerable<KeyValuePair<Vector, int>> ms, int delay)
@@ -104,18 +63,43 @@ namespace Lost_boy
             enemies.Clear();
         }
 
+        private void SetDropForLevel(Tier tier, Difficulty diff)
+        {
+            switch(tier)
+            {
+                case Tier.T1:
+                    lvl.SetDroppables(T1.Getters.GetDrop(), diff);
+                    break;
+                case Tier.T2:
+                    lvl.SetDroppables(T1.Getters.GetDrop(), diff);
+                    break;
+                case Tier.T3:
+                    lvl.SetDroppables(T1.Getters.GetDrop(), diff);
+                    break;
+            }
+        }
+
         public ILevelBuilder SetContent(Setup.LevelInfoHolder info)
         {
             var enemiesIter = info.enemyShips.GetEnumerator();
             var roadsToStartsIter = info.roadsToStarts.GetEnumerator();
             while (enemiesIter.MoveNext() && roadsToStartsIter.MoveNext())
             {
-                SetEnemyGroup(ParseEnemies(enemiesIter.Current));
+                SetEnemyGroup(ParseEnemies(enemiesIter.Current, info.tier));
                 SetStrategyForCurrentEnemies(
                     roadsToStartsIter.Current.Key,
                     roadsToStartsIter.Current.Value,
-                    5); 
+                    5);
             }
+            foreach (var enemy in enemies)
+            {
+                enemy.SetDefaultMoveStrategy();
+            }
+            enemiesWithSetStrategies.AddRange(enemies);
+            enemies.Clear();
+            lvl.Enemies = enemiesWithSetStrategies;
+            SetDropForLevel(info.tier, info.difficulty);
+            lvl.AdjustToDifficulty(info.difficulty);
             return this;
         }
 
@@ -133,15 +117,6 @@ namespace Lost_boy
 
         public ILevel Build()
         {
-            foreach (var enemy in enemies)
-            {
-                enemy.SetDefaultMoveStrategy();
-            }
-            enemiesWithSetStrategies.AddRange(enemies);
-            enemies.Clear();
-            lvl.Enemies = enemiesWithSetStrategies;
-            lvl.SetDroppables(drop, difficulty);
-            lvl.AdjustToDifficulty(difficulty, difficultyId);
             return lvl;
         }
     }
@@ -151,8 +126,22 @@ namespace Lost_boy
         {
             private MeteorLevel level = new MeteorLevel();
             private Difficulty difficulty;
-            private Dictionary<Bonus, int> set;
-            private int id;
+
+            private void SetDropForLevel(Tier tier, Difficulty diff)
+            {
+                switch (tier)
+                {
+                    case Tier.T1:
+                        level.SetDroppables(T1.Getters.GetDrop(), diff);
+                        break;
+                    case Tier.T2:
+                        level.SetDroppables(T1.Getters.GetDrop(), diff);
+                        break;
+                    case Tier.T3:
+                        level.SetDroppables(T1.Getters.GetDrop(), diff);
+                        break;
+                }
+            }
 
             public ILevelBuilder SetDescription(string description)
             {
@@ -166,22 +155,10 @@ namespace Lost_boy
                 return this;
             }
 
-            public ILevelBuilder SetDroppable(Dictionary<Bonus, int> set)
-            {
-                this.set = set;
-                return this;
-            }
-
-            public ILevelBuilder SetDifficulty(Difficulty difficulty, int id)
-            {
-                this.difficulty = difficulty;
-                this.id = id;
-                return this;
-            }
-
             public ILevelBuilder SetContent(Setup.LevelInfoHolder info)
             {
-                this.level.AdjustToDifficulty(difficulty, id);
+                SetDropForLevel(info.tier, info.difficulty);
+                this.level.AdjustToDifficulty(info.difficulty);
                 return this;
             }
 
@@ -193,7 +170,6 @@ namespace Lost_boy
 
             public ILevel Build()
             {
-                this.level.SetDroppables(set, difficulty);
                 return level;
             }
         }

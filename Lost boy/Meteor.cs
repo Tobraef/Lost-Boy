@@ -26,7 +26,7 @@ namespace Lost_boy.Meteor
             onHits(ship);
             onDeath();
         }
-        
+
         public void Recycle()
         {
             OnRecycle(this);

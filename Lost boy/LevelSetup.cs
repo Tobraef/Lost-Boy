@@ -10,9 +10,11 @@ namespace Lost_boy
 {
     namespace Setup
     {
-        public struct LevelInfoHolder
+        public class LevelInfoHolder
         {
             public int id;
+            public Difficulty difficulty;
+            public Tier tier;
             public LevelType type;
             public List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> roadsToStarts;
             public List<List<string>> enemyShips;
@@ -145,12 +147,12 @@ namespace Lost_boy
                 enemyShips.Clear();
                 LevelInfoHolder level = new LevelInfoHolder();
                 level.type = LevelType.Meteor;
-                level.enemyShips.Add(new List<string>{new Meteor.MeteorDispenser(0).ToString()});
+                level.enemyShips.Add(new List<string> { new Meteor.MeteorDispenser(0).ToString() });
                 levels.Add(level);
                 roadSetup = new RoadSetup();
                 enemyShips = new List<List<string>>();
             }
-        
+
             public void AppendEnemyToRoad(Enemies.EnemyTypes enemy)
             {
                 enemyShips.Last().Add(enemy.ToString());

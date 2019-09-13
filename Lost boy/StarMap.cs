@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Drawing;
 using System.IO;
 
@@ -10,9 +10,20 @@ namespace Lost_boy
 {
     class Star
     {
+        public bool isValid = true;
         public bool IsPressed(Vector where)
         {
             return where.DistanceFrom(MiddlePoint) <= 10;
+        }
+
+        public Difficulty Difficulty
+        {
+            get;
+        }
+
+        public Tier Tier
+        {
+            get;
         }
 
         public Color Color
@@ -25,6 +36,11 @@ namespace Lost_boy
             get;
         }
 
+        public LevelType Type
+        {
+            get;
+        }
+
         public void Draw(Graphics g, Pen p)
         {
             p.Color = Color;
@@ -33,7 +49,40 @@ namespace Lost_boy
 
         public override string ToString()
         {
-            return MiddlePoint.ToString();
+            return MiddlePoint.ToString() + " " + Color + " " + Tier + " " + Difficulty + " " + Type;
+        }
+
+        private Tier TierRandomizer()
+        {
+            switch(VALUES.random.Next(3))
+            {
+                case 0: return Tier.T1;
+                case 1: return Tier.T2;
+                case 2: return Tier.T3;
+            }
+            return Tier.T1;
+        }
+
+        private Difficulty DifficultyRandomizer()
+        {
+            switch (VALUES.random.Next(3))
+            {
+                case 0: return Difficulty.Easy;
+                case 1: return Difficulty.Normal;
+                case 2: return Difficulty.Hard;
+            }
+            return Difficulty.None;
+        }
+
+        private LevelType TypeRandomizer()
+        {
+            switch (VALUES.random.Next(7))
+            {
+                case 1: return LevelType.Meteor;
+                case 2: return LevelType.Event;
+                default:
+                    return LevelType.Classic;
+            }
         }
 
         private Color ColorRandomizer()
@@ -54,25 +103,47 @@ namespace Lost_boy
             }
         }
 
+        public Star(Vector position, Color c, Tier tier, Difficulty diff, LevelType type, bool valid)
+        {
+            Color = c;
+            MiddlePoint = position;
+            isValid = valid;
+            Type = type;
+            Tier = tier;
+            Difficulty = diff;
+        }
+
         public Star(Vector position, Color color)
         {
+            isValid = false;
             Color = color;
             MiddlePoint = position;
         }
 
         public Star(Vector position)
         {
-            Color = ColorRandomizer();
             MiddlePoint = position;
+            Tier = TierRandomizer();
+            Color = ColorRandomizer();
+            Difficulty = DifficultyRandomizer();
+            Type = TypeRandomizer();
         }
     }
 
     public class StarMap : IPlayAble
     {
         public event Action<bool> Finished;
-        Star playerStar;
+        private KeyValuePair<int, Star> playerStar;
         private const int playerReach = 100;
         private readonly Dictionary<int, Star> starMap = new Dictionary<int, Star>();
+        private static readonly Font font = new Font("Arial", 11);
+        private class Label
+        {
+            public string Text { get; set; }
+            public int X { get; set; }
+            public int Y { get; set; }
+        }
+        private Label label = null;
 
         public void Begin()
         {
@@ -85,10 +156,14 @@ namespace Lost_boy
                 pair.Value.Draw(g, p);
             }
 
+            p.Color = Color.White;
+            if (label != null)
+                g.DrawString(label.Text, font, p.Brush, label.X, label.Y);
+
             p.Color = Color.Red;
-            g.DrawRectangle(p, playerStar.MiddlePoint.X - 20, playerStar.MiddlePoint.Y - 20, 40, 40);
+            g.DrawRectangle(p, playerStar.Value.MiddlePoint.X - 20, playerStar.Value.MiddlePoint.Y - 20, 40, 40);
             p.Color = Color.Green;
-            g.DrawEllipse(p, playerStar.MiddlePoint.X - playerReach, playerStar.MiddlePoint.Y - playerReach, playerReach*2, playerReach*2);
+            g.DrawEllipse(p, playerStar.Value.MiddlePoint.X - playerReach, playerStar.Value.MiddlePoint.Y - playerReach, playerReach*2, playerReach*2);
         }
 
         public void Elapse()
@@ -97,6 +172,8 @@ namespace Lost_boy
 
         public void HandlePlayer(char key)
         {
+            if (key == ' ' && playerStar.Value.isValid)
+                Finished(true);
         }
 
         public void HandlePlayer_KeyUp(char key)
@@ -107,7 +184,23 @@ namespace Lost_boy
         {
         }
 
-        public void HandlePlayer_Mouse(Vector where)
+        public void HandlePlayerTravel(Vector where)
+        {
+            try
+            {
+                KeyValuePair<int, Star> pressed = starMap.First(pair =>
+                {
+                    return pair.Value.IsPressed(where);
+                });
+                if (pressed.Value.MiddlePoint.DistanceFrom(playerStar.Value.MiddlePoint) < playerReach)
+                {
+                    playerStar = pressed;
+                }
+            }
+            catch (Exception e) { label = null; }
+        }
+
+        public void HandlePlayerInfoDisplay(Vector where)
         {
             try
             {
@@ -115,11 +208,34 @@ namespace Lost_boy
                 {
                     return pair.Value.IsPressed(where);
                 }).Value;
-                if (pressed.MiddlePoint.DistanceFrom(playerStar.MiddlePoint) < playerReach)
+                label = new Label
                 {
-                    playerStar = pressed;
-                }
-            } catch (Exception e) { return; }
+                    Text = !pressed.isValid ?
+                           "Empty" :
+                           "Difficulty: " + pressed.Difficulty +
+                           "\nTier: " + pressed.Tier + 
+                           "\nType: " + pressed.Type,
+                    X = pressed.MiddlePoint.X,
+                    Y = pressed.MiddlePoint.Y + 10
+                };
+            }
+            catch (Exception e) { label = null; }
+        }
+
+        public void HandlePlayer_Mouse(MouseEventArgs m)
+        {
+            switch (m.Button)
+            {
+                case MouseButtons.Left:
+                    HandlePlayerTravel(new Vector(m.X, m.Y));
+                    break;
+                case MouseButtons.Right:
+                    HandlePlayerInfoDisplay(new Vector(m.X, m.Y));
+                    break;
+                case MouseButtons.Middle:
+                    break;
+            }
+            
         }
 
         private static bool IsReachable(List<Star> stars, Vector starPosition)
@@ -133,9 +249,14 @@ namespace Lost_boy
 
         public static void GenerateRandomMap(string fileToSave, int density)
         {
+            int i = 0;
             List<Star> stars = new List<Star>();
-            stars.Add(new Star(new Vector(40, 40)));
-            for (int i = 0; i < density; ++i)
+            for (; i < 10; ++i)
+            {
+                Vector where = new Vector(VALUES.random.Next(VALUES.WIDTH), VALUES.random.Next(VALUES.HEIGHT));
+                stars.Add(new Star(where));
+            }
+            for (; i < density; ++i)
             {
                 Vector where = new Vector(VALUES.random.Next(VALUES.WIDTH), VALUES.random.Next(VALUES.HEIGHT));
                 while (!IsReachable(stars, where))
@@ -144,12 +265,24 @@ namespace Lost_boy
                 }
                 stars.Add(new Star(where));
             }
+
             StringBuilder sb = new StringBuilder();
             foreach (var star in stars)
             {
-                sb.AppendLine(star.ToString() + " " + star.Color);
+                sb.AppendLine(star.ToString());
             }
             File.WriteAllText(fileToSave, sb.ToString());
+        }
+
+        private Setup.LevelInfoHolder FinishStarMap()
+        {
+            return new Setup.LevelInfoHolder
+            {
+                id = playerStar.Key,
+                tier = playerStar.Value.Tier,
+                difficulty = playerStar.Value.Difficulty,
+                type = playerStar.Value.Type
+            };
         }
 
         private Color ParseColor(string color)
@@ -170,17 +303,69 @@ namespace Lost_boy
             }
         }
 
-        public StarMap(int playerPosition, string file)
+        private Tier ParseTier(string tier)
+        {
+            switch (tier)
+            {
+                case "T1": return Tier.T1;
+                case "T2": return Tier.T2;
+                case "T3": return Tier.T3;
+            }
+            return Tier.T1;
+        }
+
+        private Difficulty ParseDifficulty(string diff)
+        {
+            switch (diff)
+            {
+                case "Easy": return Difficulty.Easy;
+                case "Normal": return Difficulty.Normal;
+                case "Hard": return Difficulty.Hard;
+            }
+            return Difficulty.None;
+        }
+
+        private LevelType ParseType(string type)
+        {
+            switch (type)
+            {
+                case "Classic": return LevelType.Classic;
+                case "Event": return LevelType.Event;
+                case "Meteor": return LevelType.Meteor;
+            }
+            return LevelType.Classic;
+        }
+
+        public StarMap(int playerPosition, string file, List<int> emptied, Action<Setup.LevelInfoHolder> finisher)
         {
             int id = 0;
+            Finished += b =>
+            {
+                finisher(FinishStarMap());
+            };
             foreach (var line in File.ReadLines(file))
             {
-                var array = line.Split(' ');
-                starMap.Add(id++, new Star(
-                    new Vector(Int32.Parse(array[2]), Int32.Parse(array[5])),
-                    ParseColor(array[7])));
+                id++;
+                if (emptied.Contains(id))
+                {
+                    var array = line.Split(' ');
+                    starMap.Add(id, new Star(
+                        new Vector(Int32.Parse(array[2]), Int32.Parse(array[5])),
+                        ParseColor(array[7])));
+                }
+                else
+                {
+                    var array = line.Split(' ');
+                    starMap.Add(id, new Star(
+                        new Vector(Int32.Parse(array[2]), Int32.Parse(array[5])),
+                        ParseColor(array[7]),
+                        ParseTier(array[8]),
+                        ParseDifficulty(array[9]),
+                        ParseType(array[10]),
+                        true));
+                }
             }
-            playerStar = starMap[playerPosition];
+            playerStar = new KeyValuePair<int, Star>(playerPosition, starMap[playerPosition]);
         }
     }
 }

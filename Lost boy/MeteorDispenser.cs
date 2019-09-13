@@ -69,9 +69,8 @@ namespace Lost_boy.Meteor
             }
         }
 
-        public void SetDifficulty(Difficulty dif, int id)
+        public void SetDifficulty(Difficulty dif)
         {
-            speed += id * 2;
             speed *= 3 * (int)dif;
             speed /= 4;
         }
@@ -95,5 +94,5 @@ namespace Lost_boy.Meteor
         {
             this.speed = speed;
         }
-    }   
+    }
 }
