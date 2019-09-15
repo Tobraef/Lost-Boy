@@ -14,12 +14,18 @@ namespace Lost_boy
         private int maxHealth;
         private Color color = Color.Green;
         private HPBar hpBar;
+        private List<IItem> backpack = new List<IItem>();
         public event Action onDeath;
 
         public IWeapon Weapon
         {
             get;
             set;
+        }
+
+        public List<IItem> Backpack
+        {
+            get { return backpack; }
         }
 
         public int MaxHealth
@@ -120,6 +126,20 @@ namespace Lost_boy
                 this.Position.Y + this.Size.Y > projectile.Position.Y;
         }
 
+        void Sell(IItem item)
+        {
+            backpack.Remove(item);
+            Gold += item.Price;
+        }
+
+        void Buy(IItem item)
+        {
+            if (Gold < item.Price)
+                throw new Exception("Not enough gold to buy this item");
+            Gold -= item.Price;
+            item.AddToInventory(this);
+        }
+
         public void CleanupAfterLvl()
         {
             Weapon.Cleanup();
@@ -136,7 +156,7 @@ namespace Lost_boy
             this.Defence = 0;
             this.onDamageTaken += (ref int val) => val -= Defence;
             this.onDamageTaken += (ref int val) => { if (Health <= 0) System.Windows.Forms.Application.Exit(); };
-            this.Weapon = new SingleWeapon(new BasicLaserFactory(Direction.Up));
+            this.Weapon = new Weapon.T1.SingleWeapon(new BulletFactory.T1.BasicLaserFactory(Direction.Up));
             this.rectangle = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
             this.hpBar = new HPBar(this);
             this.Health = MaxHealth;

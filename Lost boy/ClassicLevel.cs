@@ -7,6 +7,7 @@ using System.Drawing;
 
 namespace Lost_boy
 {
+    using Enemies;
     public class ClassicLevel : ILevel
     {
         public event Action<bool> Finished;
@@ -20,12 +21,6 @@ namespace Lost_boy
         private List<IProjectile> toRemoveEnemyProjectiles = new List<IProjectile>();
 
         public PlayerShip Player
-        {
-            set;
-            private get;
-        }
-
-        public IMovementStrategy InitialMovementStrategy
         {
             set;
             private get;
@@ -220,6 +215,12 @@ namespace Lost_boy
             CheckConditions_elapse();
         }
 
+        private void DefaultStrategyForEnemies()
+        {
+            foreach (var e in Enemies)
+                e.SetDefaultMoveStrategy();
+        }
+
         private void RandomEnemyFalldown()
         {
             Enemies
@@ -237,13 +238,15 @@ namespace Lost_boy
             SetEnemies();
             Player.Weapon.BulletAdder = PlayerBulletAdder;
             Player.Weapon.RecycledBulletAdder = PlayerRecycledBulletAdder;
-            if (Player.Weapon.Ammo is ExplosiveBulletFactory)
+            if (Player.Weapon.Ammo is IExplosiveFactory)
             {
-                (Player.Weapon.Ammo as ExplosiveBulletFactory).BulletAdder = PlayerBulletAdder;
+                (Player.Weapon.Ammo as IExplosiveFactory).BulletAdder = PlayerBulletAdder;
             }
             new Thread(() =>
             {
-                Thread.Sleep(30000);
+                Thread.Sleep(20000);
+                DefaultStrategyForEnemies();
+                Thread.Sleep(20000);
                 RandomEnemyFalldown();
             }).Start();
         }
@@ -296,6 +299,7 @@ namespace Lost_boy
                     if (VALUES.GOLD_DROP_CHANCE > VALUES.random.Next(100))
                     {
                         var bonus = new GoldCoin(e.Position, VALUES.GOLD_AVERAGE_VALUE);
+                        bonus.onDeath += bonus.Recycle;
                         EnemyBulletAdder(bonus);
                     }
                 };

@@ -6,12 +6,16 @@ using System.Threading.Tasks;
 
 namespace Lost_boy
 {
+    using Enemies;
     public class ClassicLevelBuilder : ILevelBuilder
     {
         private ClassicLevel lvl;
         PlayerShip player;
         private List<EnemyShip> enemies = new List<EnemyShip>();
         private List<EnemyShip> enemiesWithSetStrategies = new List<EnemyShip>();
+        private Vector[] formationPositions = new Vector[4]
+        { new Vector(50, 50), new Vector (50, 100), new Vector(50, 150), new Vector (50, 200) };
+        private int[] formationDistance = new int[4];
 
         public ILevelBuilder SetDescription(string description)
         {
@@ -32,16 +36,16 @@ namespace Lost_boy
 
         private EnemyShip ParseEnemy(string txt, PlayerShip p, Tier tier)
         {
-            switch (txt)
+            switch(txt)
             {
-                case "Casual":
-                    return new CasualEnemy(new Vector());
-                case "Frosty":
-                    return new FrostyEnemy(new Vector());
-                case "Rocky":
-                    return new RockyEnemy(new Vector());
-                case "Tricky":
-                    return new TrickyEnemy(p, new Vector());
+               case "Casual":
+               return new Enemies.CasualEnemy(new Vector(), tier);
+               case "Frosty":
+               return new Enemies.FrostyEnemy(new Vector(), tier);
+               case "Rocky":
+               return new Enemies.RockyEnemy(new Vector(), tier);
+               case "Tricky":
+               return new Enemies.TrickyEnemy(p, new Vector(), tier);
             }
             return null;
         }
@@ -51,12 +55,77 @@ namespace Lost_boy
             return enemyShips.Select(name => ParseEnemy(name, player, tier)).ToList();
         }
 
+        private void CalculateFormation(List<List<string>> allEnemies)
+        {
+            int[] count = new int[4];
+            foreach (var eg in allEnemies)
+                foreach (var e in eg)
+                {
+                    switch (e)
+                    {
+                        case "Casual":
+                            count[2]++;
+                            break;
+                        case "Frosty":
+                            count[0]++;
+                            break;
+                        case "Tricky":
+                            count[1]++;
+                            break;
+                        case "Rocky":
+                            count[3]++;
+                            break;
+                    }
+                }
+            for(int i = 0; i < 4; ++i)
+                formationDistance[i] = (VALUES.WIDTH - 150) / (count[i] - 1);
+        }
+
+        private IMovementStrategy GetGoToStrategy(EnemyShip e)
+        {
+            if (e is CasualEnemy)
+            {
+                var strategy = new GoToStrategy(formationPositions[2], 15);
+                formationPositions[2].X += formationDistance[2];
+                return strategy;
+            }
+            else if (e is FrostyEnemy)
+            {
+                var strategy = new GoToStrategy(formationPositions[2], 15);
+                formationPositions[0].X += formationDistance[0];
+                return strategy;
+            }
+            else if (e is RockyEnemy)
+            {
+                var strategy = new GoToStrategy(formationPositions[2], 15);
+                formationPositions[3].X += formationDistance[3];
+                return strategy;
+            }
+            else if (e is TrickyEnemy)
+            {
+                var strategy = new GoToStrategy(formationPositions[2], 15);
+                formationPositions[1].X += formationDistance[1];
+                return strategy;
+            }
+            else throw new NotImplementedException("New enemy, add to GetGoToStrategy!");
+        }
+
+        private Action GetFormationCallback(EnemyShip e)
+        {
+            var strategy = GetGoToStrategy(e);
+            return () =>
+                {
+                    e.MovementStrategy = strategy;
+                };
+        }
+
         private void SetStrategyForCurrentEnemies(Vector start, IEnumerable<KeyValuePair<Vector, int>> ms, int delay)
         {
             foreach (var enemy in enemies)
             {
                 enemy.Teleport(start.X, start.Y);
-                enemy.MovementStrategy = new LevelInitialStrategy(ms.GetEnumerator(), delay);
+                enemy.MovementStrategy = new LevelInitialStrategy(
+                    ms.GetEnumerator(), delay, GetFormationCallback(enemy));
                 delay += 5;
             }
             enemiesWithSetStrategies.AddRange(enemies);
@@ -65,16 +134,16 @@ namespace Lost_boy
 
         private void SetDropForLevel(Tier tier, Difficulty diff)
         {
-            switch(tier)
+            switch (tier)
             {
                 case Tier.T1:
-                    lvl.SetDroppables(T1.Getters.GetDrop(), diff);
+                    lvl.SetDroppables(Getters.T1GetDrop(), diff);
                     break;
                 case Tier.T2:
-                    lvl.SetDroppables(T1.Getters.GetDrop(), diff);
+                    lvl.SetDroppables(Getters.T2GetDrop(), diff);
                     break;
                 case Tier.T3:
-                    lvl.SetDroppables(T1.Getters.GetDrop(), diff);
+                    lvl.SetDroppables(Getters.T3GetDrop(), diff);
                     break;
             }
         }
@@ -83,6 +152,7 @@ namespace Lost_boy
         {
             var enemiesIter = info.enemyShips.GetEnumerator();
             var roadsToStartsIter = info.roadsToStarts.GetEnumerator();
+            CalculateFormation(info.enemyShips);
             while (enemiesIter.MoveNext() && roadsToStartsIter.MoveNext())
             {
                 SetEnemyGroup(ParseEnemies(enemiesIter.Current, info.tier));
@@ -91,12 +161,14 @@ namespace Lost_boy
                     roadsToStartsIter.Current.Value,
                     5);
             }
-            foreach (var enemy in enemies)
+
+            foreach (var leftEnemy in enemies)
             {
-                enemy.SetDefaultMoveStrategy();
+                leftEnemy.SetDefaultMoveStrategy();
             }
             enemiesWithSetStrategies.AddRange(enemies);
             enemies.Clear();
+
             lvl.Enemies = enemiesWithSetStrategies;
             SetDropForLevel(info.tier, info.difficulty);
             lvl.AdjustToDifficulty(info.difficulty);
@@ -132,13 +204,13 @@ namespace Lost_boy
                 switch (tier)
                 {
                     case Tier.T1:
-                        level.SetDroppables(T1.Getters.GetDrop(), diff);
+                        level.SetDroppables(Getters.T1GetDrop(), diff);
                         break;
                     case Tier.T2:
-                        level.SetDroppables(T1.Getters.GetDrop(), diff);
+                        level.SetDroppables(Getters.T2GetDrop(), diff);
                         break;
                     case Tier.T3:
-                        level.SetDroppables(T1.Getters.GetDrop(), diff);
+                        level.SetDroppables(Getters.T3GetDrop(), diff);
                         break;
                 }
             }

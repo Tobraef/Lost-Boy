@@ -5,14 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 
-namespace Lost_boy
+namespace Lost_boy.Ammo
 {
     public abstract class Bullet : Mover, IBullet
     {
         public virtual event Action onDeath;
         public event Action<IProjectile> OnRecycle;
-        public event Action<IShip> onHits;
-        public event Modify dmgModifiers;
+        public virtual event Action<IShip> onHits;
+        public virtual event Modify dmgModifiers;
         protected Direction direction;
 
         public Color Color

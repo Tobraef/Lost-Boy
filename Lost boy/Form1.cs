@@ -111,10 +111,6 @@ namespace Lost_boy
         {
             level.Elapse();
             Refresh();
-            //Task logic = new Task(level.Elapse);
-            //Task drawing = new Task(this.Refresh);
-            //Task.Run(level.Elapse);
-            //Task.Run(Refresh);
             level.PrepareNextStage();
         }
 
@@ -143,9 +139,7 @@ namespace Lost_boy
         private void InitializePlayer()
         {
             player = new PlayerShip();
-            player.Weapon = new DoubleWeapon(new BasicLaserFactory(Direction.Up));
-            // testing site below
-            player.Weapon.Ammo = new FrostyLaserFactory(Direction.Up);
+            player.Weapon = new Weapon.T2.DoubleWeapon(new BulletFactory.T2.HellHotFactory(Direction.Up));
         }
 
         private void PLAY()
@@ -159,12 +153,12 @@ namespace Lost_boy
 
         private void ActivateStarMap()
         {
+            emptyStars.Add(playerStar);
             level = new StarMap(playerStar, STAR_MAP_FILE, emptyStars, PrepareNextLevel);
         }
 
         private void PrepareNextLevel(Setup.LevelInfoHolder info)
         {
-            emptyStars.Add(playerStar);
             playerStar = info.id;
             LoadNextLevel(info);
         }
@@ -179,6 +173,7 @@ namespace Lost_boy
                 lvlInfo.id = info.id;
                 lvlInfo.tier = info.tier;
                 lvlInfo.type = info.type;
+                lvlInfo.difficulty = info.difficulty;
                 builder = new ClassicLevelBuilder();
                 SetLevel(lvlInfo, builder);
             }
@@ -219,7 +214,7 @@ namespace Lost_boy
             InitializePlayer();
             // LoadNextLevel();
             StarMap.GenerateRandomMap(STAR_MAP_FILE, 100);
-            level = new StarMap(playerStar, STAR_MAP_FILE, new List<int>{ }, PrepareNextLevel);
+            level = new StarMap(playerStar, STAR_MAP_FILE, new List<int> { }, PrepareNextLevel);
             level.Begin();
             PLAY();
             this.KeyUp += KeyUps;

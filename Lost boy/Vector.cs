@@ -56,6 +56,13 @@ namespace Lost_boy
             return Math.Sqrt(Math.Pow(X - v.X, 2) + Math.Pow(Y - v.Y, 2));
         }
 
+        public void FitToLength(int length)
+        {
+            int y = Y;
+            Y = (int)Math.Sqrt(length / (((double)(X * X) / (double)(Y * Y)) + 1));
+            X = (int)((double)X / (double)y * Y);
+        }
+
         public static implicit operator System.Drawing.Point(Vector v)
         {
             return new System.Drawing.Point(v.X, v.Y);

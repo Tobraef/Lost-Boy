@@ -47,6 +47,9 @@ namespace Lost_boy
                 "Speed " + Speed.ToString() + '\n';
         }
 
+        public Mover()
+        { }
+
         public Mover(Vector pos, Vector speed, Vector acc, Vector size)
         {
             Size = size;

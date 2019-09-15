@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 
-namespace Lost_boy
+namespace Lost_boy.Enemies
 {
     public abstract class EnemyShip : Mover, IShip
     {
@@ -177,7 +177,7 @@ namespace Lost_boy
             this.Health = VALUES.ENEMY_HEALTH;
             this.Defence = 0;
             this.onDamageTaken += (ref int val) => val -= Defence;
-            this.Weapon = new SingleWeapon(new BasicLaserFactory(Direction.Down));
+            this.Weapon = new Weapon.T1.SingleWeapon(new BulletFactory.T1.BasicLaserFactory(Direction.Down));
             this.rectangle = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
             this.MovementStrategy = new NormalMovementStrategy();
             this.hpBar = new HPBar(this);
@@ -192,7 +192,7 @@ namespace Lost_boy
     {
         public override void SetDefaultMoveStrategy()
         {
-            MovementStrategy = null;
+            MovementStrategy = new NormalMovementStrategy();
         }
 
         public override string ToString()
@@ -200,24 +200,69 @@ namespace Lost_boy
             return base.ToString() + "Rocky";
         }
 
-        public RockyEnemy(Vector position) :
+        public RockyEnemy(Vector position, Tier tier) :
             base(position)
         {
-            this.Defence = 25;
-            this.Size = this.Size * 2;
-            this.MaxHealth = 2 * VALUES.ENEMY_HEALTH;
-            this.Speed = new Vector(10, 0);
-            this.color = Color.Brown;
-            this.MaxSpeed = 5;
-            this.ShootingChance = 25;
-            this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
-            this.Weapon.AppendOnShot(new OnShots.SizeChange(10));
-            this.Weapon.AppendOnShot(new OnShots.SpeedChange(-5));
-            this.Weapon.Ammo.AppendDmgModifier((ref int val) =>
+            switch (tier)
             {
-                val *= 2;
-            });
-            this.Health = MaxHealth;
+                case Tier.T1:
+                    this.Defence = 25;
+                    this.Size = this.Size * 2;
+                    this.MaxHealth = 2 * VALUES.ENEMY_HEALTH;
+                    this.Speed = new Vector(10, 0);
+                    this.color = Color.Brown;
+                    this.MaxSpeed = 5;
+                    this.ShootingChance = 25;
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.AppendOnShot(new OnShots.SizeChange(5));
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(-5));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int val) =>
+                    {
+                        val *= 2;
+                    });
+                    this.Health = MaxHealth;
+                    break;
+
+                case Tier.T2:
+                    this.Defence = 45;
+                    this.Size = this.Size * 2;
+                    this.MaxHealth = 4 * VALUES.ENEMY_HEALTH;
+                    this.Speed = new Vector(5, 0);
+                    this.color = Color.Brown;
+                    this.MaxSpeed = 5;
+                    this.ShootingChance = 35;
+                    this.Weapon = new Weapon.T2.DoubleWeapon(
+                        new BulletFactory.T1.BasicLaserFactory(Direction.Down));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.AppendOnShot(new OnShots.SizeChange(7));
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(-3));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int val) =>
+                    {
+                        val += 5;
+                        val *= 2;
+                    });
+                    this.Health = MaxHealth;
+                    break;
+
+                case Tier.T3:
+                    this.Defence = 75;
+                    this.Size = this.Size * 2;
+                    this.MaxHealth = 6 * VALUES.ENEMY_HEALTH;
+                    this.color = Color.Brown;
+                    this.MaxSpeed = 10;
+                    this.ShootingChance = 50;
+                    this.Weapon = new Weapon.T2.DoubleWeapon(
+                        new BulletFactory.T1.BasicLaserFactory(Direction.Down));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.AppendOnShot(new OnShots.SizeChange(10));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int val) =>
+                    {
+                        val += 30;
+                    });
+                    this.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(8));
+                    this.Health = MaxHealth;
+                    break;
+            }
         }
     }
 
@@ -233,19 +278,60 @@ namespace Lost_boy
             return base.ToString() + "Frosty";
         }
 
-        public FrostyEnemy(Vector position) :
+        public FrostyEnemy(Vector position, Tier tier) :
             base(position)
         {
-            this.Defence = 0;
-            this.Size = this.Size / 2;
-            this.MaxHealth = VALUES.ENEMY_HEALTH;
-            this.MaxSpeed = 15;
-            this.color = Color.Blue;
-            this.ShootingChance = 75;
-            this.Weapon.AppendOnShot(new OnShots.SpeedChange(5));
-            this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
-            this.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(5));
-            this.Health = MaxHealth;
+            switch (tier)
+            {
+                case Tier.T1:
+                    this.Defence = 0;
+                    this.MaxHealth = VALUES.ENEMY_HEALTH;
+                    this.MaxSpeed = 15;
+                    this.color = Color.Blue;
+                    this.ShootingChance = 65;
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(5));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(3));
+                    this.Health = MaxHealth;
+                    break;
+
+                case Tier.T2:
+                    this.Defence = 18;
+                    this.Size = this.Size * 3 / 4;
+                    this.MaxHealth = 2 * VALUES.ENEMY_HEALTH;
+                    this.MaxSpeed = 15;
+                    this.color = Color.Blue;
+                    this.ShootingChance = 75;
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(8));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(5));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int i) =>
+                        {
+                            i += 10;
+                        });
+                    this.Health = MaxHealth;
+                    break;
+
+                case Tier.T3:
+                    this.Defence = 18;
+                    this.Size = this.Size * 3 / 4;
+                    this.MaxHealth = VALUES.ENEMY_HEALTH * 3 / 2;
+                    this.MaxSpeed = 15;
+                    this.color = Color.Blue;
+                    this.ShootingChance = 75;
+                    this.Weapon = new Weapon.T3.TripleWeapon(
+                        new BulletFactory.T1.PlasmaFactory(Direction.Down));
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(5));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(3));
+                    this.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(10, 1, 100));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int i) =>
+                    {
+                        i += 10;
+                    });
+                    this.Health = MaxHealth;
+                    break;
+            }
         }
     }
 
@@ -269,19 +355,62 @@ namespace Lost_boy
             return base.ToString() + "Tricky";
         }
 
-        public TrickyEnemy(Mover playerShip, Vector position) :
+        public TrickyEnemy(Mover playerShip, Vector position, Tier tier) :
             base(position)
         {
             this.playerShipWatcher = playerShip;
-            this.Defence = -10;
-            this.MaxHealth = VALUES.ENEMY_HEALTH / 2;
-            this.MaxSpeed = 20;
-            this.color = Color.DeepPink;
-            this.ShootingChance = 90;
-            this.Weapon.AppendOnShot(new OnShots.SpeedChange(15));
-            this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
-            this.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(5, 3, 50));
-            this.Health = MaxHealth;
+            switch (tier)
+            {
+                case Tier.T1:
+                    this.Defence = -5;
+                    this.MaxHealth = VALUES.ENEMY_HEALTH;
+                    this.MaxSpeed = 20;
+                    this.color = Color.DeepPink;
+                    this.ShootingChance = 90;
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(15));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(5, 3, 50));
+                    this.Health = MaxHealth;
+                    break;
+
+                case Tier.T2:
+                    this.playerShipWatcher = playerShip;
+                    this.Defence = 10;
+                    this.MaxHealth = VALUES.ENEMY_HEALTH * 3 / 2;
+                    this.MaxSpeed = 23;
+                    this.color = Color.DeepPink;
+                    this.ShootingChance = 90;
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(20));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.AppendOnShot(new OnShots.SizeChange(5));
+                    this.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(10, 3, 50));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int i) =>
+                        {
+                            i += 10;
+                        });
+                    this.Health = MaxHealth;
+                    break;
+
+                case Tier.T3:
+                    this.playerShipWatcher = playerShip;
+                    this.Defence = 10;
+                    this.MaxHealth = VALUES.ENEMY_HEALTH * 2;
+                    this.MaxSpeed = 30;
+                    this.color = Color.DeepPink;
+                    this.ShootingChance = 100;
+                    this.Weapon = new Weapon.T2.DoubleWeapon(
+                        new BulletFactory.T2.HellHotFactory(Direction.Down));
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(15));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.AppendOnShot(new OnShots.SizeChange(5));
+                    this.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(10, 3, 100));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int i) =>
+                    {
+                        i += 10;
+                    });
+                    this.Health = MaxHealth;
+                    break;
+            }
         }
     }
 
@@ -297,16 +426,57 @@ namespace Lost_boy
             return base.ToString() + "Casual";
         }
 
-        public CasualEnemy(Vector position) :
+        public CasualEnemy(Vector position, Tier tier) :
             base(position)
         {
-            this.Defence = 5;
-            this.MaxHealth = VALUES.ENEMY_HEALTH;
-            this.MaxSpeed = 10;
-            this.color = Color.Chartreuse;
-            this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
-            this.ShootingChance = 90;
-            this.Health = MaxHealth;
+            switch (tier)
+            {
+                case Tier.T1:
+                    this.Defence = 5;
+                    this.MaxHealth = VALUES.ENEMY_HEALTH;
+                    this.MaxSpeed = 10;
+                    this.color = Color.Chartreuse;
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.ShootingChance = 70;
+                    this.Health = MaxHealth;
+                    break;
+
+                case Tier.T2:
+                    this.Defence = 25;
+                    this.MaxHealth = 2 * VALUES.ENEMY_HEALTH;
+                    this.MaxSpeed = 15;
+                    this.color = Color.Chartreuse;
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.ShootingChance = 80;
+                    this.Weapon.AppendOnShot(new OnShots.SizeChange(3));
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(5));
+                    this.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(5, 3, 100));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int i) =>
+                        {
+                            i += 5;
+                        });
+                    this.Health = MaxHealth;
+                    break;
+
+                case Tier.T3:
+                    this.Defence = 45;
+                    this.MaxHealth = 4 * VALUES.ENEMY_HEALTH;
+                    this.MaxSpeed = 20;
+                    this.color = Color.Chartreuse;
+                    this.Weapon = new Weapon.T2.DoubleWeapon(
+                        new BulletFactory.T2.HellHotFactory(Direction.Down));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.ShootingChance = 90;
+                    this.Weapon.AppendOnShot(new OnShots.SizeChange(5));
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(10));
+                    this.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(10, 3, 100));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int i) =>
+                    {
+                        i += 15;
+                    });
+                    this.Health = MaxHealth;
+                    break;
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Timers;
 
 namespace Lost_boy
 {
+    using Enemies;
     public class FallDownStrategy : IMovementStrategy
     {
         private int circulationPointX;
@@ -132,8 +133,10 @@ namespace Lost_boy
     public class LevelInitialStrategy : IMovementStrategy
     {
         private int currentCount;
-        IEnumerator<KeyValuePair<Vector, int>> currentStep;
-        int delay;
+        private IEnumerator<KeyValuePair<Vector, int>> currentStep;
+        private int delay;
+        private Action finishCallback;
+
         public void ApplyStrategy(IShip m)
         {
             if (delay > 0)
@@ -148,7 +151,7 @@ namespace Lost_boy
             }
             if (!currentStep.MoveNext())
             {
-                ((EnemyShip)m).SetDefaultMoveStrategy();
+                finishCallback();
             }
             else
             {
@@ -162,10 +165,57 @@ namespace Lost_boy
             currentStep = null;
         }
 
-        public LevelInitialStrategy(IEnumerator<KeyValuePair<Vector, int>> iter, int delay)
+        public LevelInitialStrategy(IEnumerator<KeyValuePair<Vector, int>> iter, int delay,
+            Action finishCallback)
         {
+            this.finishCallback = finishCallback;
             currentStep = iter;
             this.delay = delay;
+        }
+    }
+
+    public class GoToStrategy : IMovementStrategy
+    {
+        private Vector destination;
+        private int moveTicks;
+        private int flatSpeed;
+        private Action<IShip> movefunction;
+
+        private void ApplyAndGo(IShip s)
+        {
+            Vector speed = destination - s.Position;
+            moveTicks = (int)speed.Length / flatSpeed;
+            speed /= moveTicks;
+            s.Speed = speed;
+            moveTicks--;
+            movefunction = GoToPoint;
+        }
+
+        private void GoToPoint(IShip s)
+        {
+            moveTicks--;
+            if (moveTicks < 0)
+            {
+                ((EnemyShip)s).Teleport(destination.X, destination.Y);
+                ((EnemyShip)s).MovementStrategy = null;
+            }
+        }
+
+        public void ApplyStrategy(IShip m)
+        {
+            movefunction(m);
+        }
+
+        public void StopStrategy(IShip m)
+        {
+            moveTicks = 0;
+        }
+
+        public GoToStrategy(Vector to, int withSpeed)
+        {
+            flatSpeed = withSpeed;
+            destination = to;
+            movefunction = ApplyAndGo;
         }
     }
 }

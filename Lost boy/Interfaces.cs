@@ -98,7 +98,7 @@ namespace Lost_boy
 
         public const int ENEMY_HEIGHT = 30;
         public const int ENEMY_WIDTH = 30;
-        public const int ENEMY_HEALTH = 10;
+        public const int ENEMY_HEALTH = 100;
         public const int ENEMY_FALLING_SPEED = 5;
 
         public const int TICK_INTERVAL = 3000; //milis
@@ -177,6 +177,13 @@ namespace Lost_boy
         void Recycle();
     }
 
+    public interface IItem
+    {
+        int Price { get; }
+        void AddToInventory(PlayerShip player);
+        void Equip(PlayerShip player);
+    }
+
     public interface IBullet : IProjectile
     {
         Color Color
@@ -192,7 +199,7 @@ namespace Lost_boy
         }
     }
 
-    public interface IBulletFactory
+    public interface IBulletFactory : IItem
     {
         int RechargeTime
         {
@@ -203,7 +210,15 @@ namespace Lost_boy
         IBullet Create(Vector where);
     }
 
-    public interface IWeapon
+    public interface IExplosiveFactory
+    {
+        Action<IProjectile> BulletAdder
+        {
+            set;
+        }
+    }
+
+    public interface IWeapon : IItem
     {
         void Cleanup();
         Action<IBullet> BulletAdder
