@@ -16,8 +16,7 @@ namespace Lost_boy
             public Difficulty difficulty;
             public Tier tier;
             public LevelType type;
-            public List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> roadsToStarts;
-            public List<List<string>> enemyShips;
+            public List<string> data;
         }
 
         class RoadSetup
@@ -94,7 +93,7 @@ namespace Lost_boy
             private List<List<string>> enemyShips = new List<List<string>>();
             private RoadSetup roadSetup;
             private readonly string instructions =
-                    "1 - casual\n2 - frosty\n3 - triky\n4 - rocky\n" +
+                    "1 - casual\n2 - frosty\n3 - triky\n4 - rocky\n5 - stealthy\n" +
                     "Mouse - mid = begin, left = note point, right = close\n" +
                     "Space - save to file\n" +
                     "N - finish level\n" +
@@ -129,13 +128,50 @@ namespace Lost_boy
             {
                 roadSetup.CloseRoad();
             }
+            
+            private List<string> ConvertEnemies(List<List<string>> list)
+            {
+                List<string> toRet = new List<string>();
+                StringBuilder ss = new StringBuilder();
+                foreach (var egroup in list)
+                {
+                    foreach (var e in egroup)
+                    {
+                        ss.Append(e.ToString());
+                    }
+                    ss.AppendLine();
+                    toRet.Add(ss.ToString());
+                    ss.Clear();
+                }
+                return toRet;
+            }
+
+            private List<string> ConvertRoads()
+            {
+                List<string> lines = new List<string>();
+                StringBuilder sb = new StringBuilder();
+                foreach (var rToS in roadSetup.GetRoads())
+                {
+                    sb.AppendLine(rToS.Key.ToString());
+                    foreach (var road in rToS.Value)
+                    {
+                        sb.AppendFormat("{0} {1} {2}", road.Key.X, road.Key.Y, road.Value);
+                        sb.AppendLine();
+                    }
+                    lines.Add(sb.ToString());
+                    sb.Clear();
+                }
+                return lines;
+            }
 
             public void FinishLevel()
             {
                 LevelInfoHolder level = new LevelInfoHolder();
                 level.type = LevelType.Classic;
-                level.enemyShips = enemyShips;
-                level.roadsToStarts = new List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>>(roadSetup.GetRoads());
+                var lines = ConvertEnemies(enemyShips);
+                lines.Add("---");
+                lines.AddRange(ConvertRoads());
+                level.data = lines;
                 levels.Add(level);
                 roadSetup = new RoadSetup();
                 enemyShips = new List<List<string>>();
@@ -147,7 +183,7 @@ namespace Lost_boy
                 enemyShips.Clear();
                 LevelInfoHolder level = new LevelInfoHolder();
                 level.type = LevelType.Meteor;
-                level.enemyShips.Add(new List<string> { new Meteor.MeteorDispenser(0).ToString() });
+                level.data = new List<string> { new Meteor.MeteorDispenser(0).ToString() };
                 levels.Add(level);
                 roadSetup = new RoadSetup();
                 enemyShips = new List<List<string>>();
@@ -177,21 +213,9 @@ namespace Lost_boy
                 {
                     sb.AppendLine("=== " + ++id + lvl.type.ToString());
 
-                    foreach (var eGroup in lvl.enemyShips)
+                    foreach (var line in lvl.data)
                     {
-                        sb.AppendLine(String.Join(" ", eGroup));
-                    }
-
-                    sb.AppendLine("---");
-
-                    foreach (var rToS in lvl.roadsToStarts)
-                    {
-                        sb.AppendLine(rToS.Key.ToString());
-                        foreach (var road in rToS.Value)
-                        {
-                            sb.AppendFormat("{0} {1} {2}", road.Key.X, road.Key.Y, road.Value);
-                            sb.AppendLine();
-                        }
+                        sb.Append(line);
                     }
                 }
 
@@ -214,6 +238,8 @@ namespace Lost_boy
                         return LevelType.Classic;
                     case "Meteor":
                         return LevelType.Meteor;
+                    case "Event":
+                        return LevelType.Classic;
                 }
                 throw new NotImplementedException("No such level type as " + s);
             }
@@ -224,49 +250,19 @@ namespace Lost_boy
                 var iter = lines.GetEnumerator();
                 string id = levelId.ToString();
 
-                while (true)
-                {
-                    if (!iter.MoveNext())
-                        throw new IndexOutOfRangeException("No more levels!");
-                    if (iter.Current.Contains("===") && iter.Current.Contains(id))
-                        break;
-                }
                 LevelInfoHolder lvl = new LevelInfoHolder
                 {
                     id = ++levelId,
-                    type = ParseLevelType(iter.Current.Split().Last()),
-                    enemyShips = new List<List<string>>(),
-                    roadsToStarts = new List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>>()
+                    data = new List<string>()
                 };
-                while (iter.MoveNext())
-                {
-                    if (iter.Current.Equals("---"))
-                        break;
-                    lvl.enemyShips.Add(new List<string>());
-                    lvl.enemyShips.Last().AddRange(iter.Current
-                        .Split(' '));
-                }
-                List<KeyValuePair<Vector, int>> road = null;
-                while (iter.MoveNext())
-                {
-                    var txt = iter.Current.Split(' ');
-                    if (txt[0].Equals("==="))
-                        break;
-                    if (txt.Length != 3)
-                    {
-                        road = new List<KeyValuePair<Vector, int>>();
-                        lvl.roadsToStarts.Add(
-                            new KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>
-                            (new Vector(Int32.Parse(txt[2]), Int32.Parse(txt[5])),
-                            road));
-                    }
-                    else
-                    {
-                        road.Add(new KeyValuePair<Vector, int>
-                            (new Vector(Int32.Parse(txt[0]), Int32.Parse(txt[1])),
-                                Int32.Parse(txt[2])));
-                    }
-                }
+                var begin = lines
+                    .SkipWhile(line => !(line.Contains("===") && line.Contains(id)))
+                    .ToList();
+                lvl.type = ParseLevelType(begin.First().Split(' ').Last());
+                lvl.data = begin
+                    .Skip(1)
+                    .TakeWhile(line => !line.Contains("==="))
+                    .ToList();
                 return lvl;
             }
         }

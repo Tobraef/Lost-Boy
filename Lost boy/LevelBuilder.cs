@@ -46,6 +46,8 @@ namespace Lost_boy
                return new Enemies.RockyEnemy(new Vector(), tier);
                case "Tricky":
                return new Enemies.TrickyEnemy(p, new Vector(), tier);
+               case "Stealthy":
+               return new Enemies.StealthyEnemy(new Vector(), tier);
             }
             return null;
         }
@@ -74,6 +76,8 @@ namespace Lost_boy
                             break;
                         case "Rocky":
                             count[3]++;
+                            break;
+                        case "Stealthy":
                             break;
                     }
                 }
@@ -106,6 +110,10 @@ namespace Lost_boy
                 var strategy = new GoToStrategy(formationPositions[2], 15);
                 formationPositions[1].X += formationDistance[1];
                 return strategy;
+            }
+            else if (e is StealthyEnemy)
+            {
+                return null;
             }
             else throw new NotImplementedException("New enemy, add to GetGoToStrategy!");
         }
@@ -148,11 +156,47 @@ namespace Lost_boy
             }
         }
 
+        private List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> ReadRoad(IEnumerable<string> txt)
+        {
+            List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> roads
+                = new List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>>();
+            foreach (var line in txt)
+            {
+                var words = line.Split(' ');
+                if (words.Length != 3)
+                {
+                    roads.Add(new KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>
+                        (new Vector(Int32.Parse(words[2]), Int32.Parse(words[5])), 
+                        new List<KeyValuePair<Vector, int>>()));
+                }
+                else
+                {
+                    roads.Last().Value.Add(new KeyValuePair<Vector, int>
+                        (new Vector(Int32.Parse(words[0]), Int32.Parse(words[1])),
+                            Int32.Parse(words[2])));
+                }
+            }
+            return roads;
+        }
+
+        private List<List<string>> ReadEnemies(IEnumerable<string> txt)
+        {
+            List<List<string>> toRet = new List<List<string>>();
+            foreach (var line in txt)
+            {
+                toRet.Add(new List<string>());
+                toRet.Last().AddRange(line.Split(' '));
+            }
+            return toRet;
+        }
+
         public ILevelBuilder SetContent(Setup.LevelInfoHolder info)
         {
-            var enemiesIter = info.enemyShips.GetEnumerator();
-            var roadsToStartsIter = info.roadsToStarts.GetEnumerator();
-            CalculateFormation(info.enemyShips);
+            var roads = ReadRoad(info.data.SkipWhile(line => line != "---").Skip(1));
+            var es = ReadEnemies(info.data.TakeWhile(line => line!= "---"));
+            var enemiesIter = es.GetEnumerator();
+            var roadsToStartsIter = roads.GetEnumerator();
+            CalculateFormation(es);
             while (enemiesIter.MoveNext() && roadsToStartsIter.MoveNext())
             {
                 SetEnemyGroup(ParseEnemies(enemiesIter.Current, info.tier));

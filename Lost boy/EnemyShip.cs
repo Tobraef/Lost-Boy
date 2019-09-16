@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Timers;
 using System.Drawing;
 
 namespace Lost_boy.Enemies
@@ -263,6 +263,97 @@ namespace Lost_boy.Enemies
                     this.Health = MaxHealth;
                     break;
             }
+        }
+    }
+
+    public class StealthyEnemy : EnemyShip
+    {
+        private Timer timerToBlack;
+        private Timer timerToNormal;
+
+        public override void SetDefaultMoveStrategy()
+        {
+            MovementStrategy = new DanceInRectangleStrategy(
+                new Vector(200, 200), new Vector(VALUES.WIDTH - 200, 400));
+        }
+
+        public override void Draw(Graphics g, Pen p)
+        {
+            if (color != Color.Black)
+                base.Draw(g, p);
+        }
+
+        private void GoColor()
+        {
+            color = Color.Cornsilk;
+            timerToNormal.Stop();
+            timerToBlack.Start();
+        }
+
+        private void GoBlack()
+        {
+            color = Color.Black;
+            timerToBlack.Stop();
+            timerToNormal.Start();
+        }
+
+        public override string ToString()
+        {
+            return base.ToString() + "Stealth";
+        }
+
+        public StealthyEnemy(Vector position, Tier tier) :
+            base(position)
+        {
+            int stealthTime = 0;
+            int stealthBreak = 0;
+            this.color = Color.Cornsilk;            
+            switch(tier)
+            {
+                case Tier.T1:
+                    this.Defence = 0;
+                    this.MaxHealth = VALUES.ENEMY_HEALTH;
+                    this.MaxSpeed = 15;
+                    this.ShootingChance = 75;
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(10));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int i) => i += 10);
+                    stealthBreak = 5000;
+                    stealthTime = 3000;
+                    break;
+
+                case Tier.T2:
+                    this.Defence = 0;
+                    this.MaxHealth = 2 * VALUES.ENEMY_HEALTH;
+                    this.MaxSpeed = 20;
+                    this.ShootingChance = 80;
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(15));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int i) => i += 18);
+                    stealthBreak = 4500;
+                    stealthTime = 4000;
+                    break;
+
+                case Tier.T3:
+                    this.Defence = 15;
+                    this.MaxHealth = 2 * VALUES.ENEMY_HEALTH;
+                    this.MaxSpeed = 25;
+                    this.ShootingChance = 80;
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(15));
+                    this.Weapon.AppendOnShot(new OnShots.SizeChange(7));
+                    this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
+                    this.Weapon.Ammo.AppendDmgModifier((ref int i) => i += 30);
+                    stealthBreak = 4000;
+                    stealthTime = 5000;
+                    break;
+            }
+            this.MaxHealth = Health;
+            timerToBlack = new Timer(stealthBreak);
+            timerToNormal = new Timer(stealthTime);
+            timerToBlack.Elapsed += (s, e) => GoBlack();
+            timerToNormal.Elapsed += (s, e) => GoColor();
+            GoColor();
+            onDeath += () => { timerToBlack.Stop(); timerToNormal.Stop(); };
         }
     }
 

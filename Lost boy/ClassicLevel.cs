@@ -113,7 +113,6 @@ namespace Lost_boy
                             var newBonus = bonus.Key.Clone(enemy.Position
                             + new Vector(VALUES.random.Next(-10, 10),
                                         VALUES.random.Next(-10, 10)));
-                            newBonus.onDeath += newBonus.Recycle;
                             EnemyBulletAdder(newBonus);
                         };
                     }

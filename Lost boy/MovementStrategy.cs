@@ -218,4 +218,26 @@ namespace Lost_boy
             movefunction = ApplyAndGo;
         }
     }
+
+    public class DanceInRectangleStrategy : IMovementStrategy
+    {
+        private Vector leftPoint;
+        private Vector rightPoint;
+
+        public void ApplyStrategy(IShip m)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void StopStrategy(IShip m)
+        {
+            throw new NotImplementedException();
+        }
+
+        public DanceInRectangleStrategy(Vector first, Vector second)
+        {
+            leftPoint = first;
+            rightPoint = second;
+        }
+    }
 }
