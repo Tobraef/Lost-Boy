@@ -128,7 +128,7 @@ namespace Lost_boy
             {
                 roadSetup.CloseRoad();
             }
-            
+
             private List<string> ConvertEnemies(List<List<string>> list)
             {
                 List<string> toRet = new List<string>();

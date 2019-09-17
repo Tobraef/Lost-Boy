@@ -221,23 +221,42 @@ namespace Lost_boy
 
     public class DanceInRectangleStrategy : IMovementStrategy
     {
-        private Vector leftPoint;
-        private Vector rightPoint;
+        private Vector leftBound;
+        private Vector rightBound;
+        private int ticks;
+        private readonly int speed = 10;
 
         public void ApplyStrategy(IShip m)
         {
-            throw new NotImplementedException();
+            if (ticks < 0)
+            {
+                Vector destiny = new Vector(VALUES.random.Next(leftBound.X, rightBound.X),
+                                    VALUES.random.Next(leftBound.Y, rightBound.Y));
+                double distance = m.Position.DistanceFrom(destiny);
+                ticks = (int)distance / speed;
+                m.Speed = destiny - m.Position;
+                m.Speed /= ticks;
+            }
+            else
+                ticks--;
         }
 
         public void StopStrategy(IShip m)
         {
-            throw new NotImplementedException();
+            m.Speed = new Vector();
+            ticks = 0;
         }
 
         public DanceInRectangleStrategy(Vector first, Vector second)
         {
-            leftPoint = first;
-            rightPoint = second;
+            leftBound = first;
+            rightBound = second;
+        }
+
+        public DanceInRectangleStrategy()
+        {
+            leftBound = new Vector(200, 200);
+            rightBound = new Vector(VALUES.WIDTH - 200, 400);
         }
     }
 }

@@ -65,7 +65,7 @@ namespace Lost_boy.Weapon
 
         protected void ImbueBullet(IBullet bullet)
         {
-            if (onShot != null) 
+            if (onShot != null)
                 onShot(bullet);
             bullet.OnRecycle += RecyclingMethod;
             bullet.onDeath += bullet.Recycle;

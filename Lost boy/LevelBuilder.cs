@@ -36,18 +36,18 @@ namespace Lost_boy
 
         private EnemyShip ParseEnemy(string txt, PlayerShip p, Tier tier)
         {
-            switch(txt)
+            switch (txt)
             {
-               case "Casual":
-               return new Enemies.CasualEnemy(new Vector(), tier);
-               case "Frosty":
-               return new Enemies.FrostyEnemy(new Vector(), tier);
-               case "Rocky":
-               return new Enemies.RockyEnemy(new Vector(), tier);
-               case "Tricky":
-               return new Enemies.TrickyEnemy(p, new Vector(), tier);
-               case "Stealthy":
-               return new Enemies.StealthyEnemy(new Vector(), tier);
+                case "Casual":
+                    return new Enemies.CasualEnemy(new Vector(), tier);
+                case "Frosty":
+                    return new Enemies.FrostyEnemy(new Vector(), tier);
+                case "Rocky":
+                    return new Enemies.RockyEnemy(new Vector(), tier);
+                case "Tricky":
+                    return new Enemies.TrickyEnemy(p, new Vector(), tier);
+                case "Stealthy":
+                    return new Enemies.StealthyEnemy(new Vector(), tier);
             }
             return null;
         }
@@ -81,7 +81,7 @@ namespace Lost_boy
                             break;
                     }
                 }
-            for(int i = 0; i < 4; ++i)
+            for (int i = 0; i < 4; ++i)
                 formationDistance[i] = (VALUES.WIDTH - 150) / (count[i] - 1);
         }
 
@@ -122,9 +122,9 @@ namespace Lost_boy
         {
             var strategy = GetGoToStrategy(e);
             return () =>
-                {
-                    e.MovementStrategy = strategy;
-                };
+            {
+                e.MovementStrategy = strategy;
+            };
         }
 
         private void SetStrategyForCurrentEnemies(Vector start, IEnumerable<KeyValuePair<Vector, int>> ms, int delay)
@@ -166,7 +166,7 @@ namespace Lost_boy
                 if (words.Length != 3)
                 {
                     roads.Add(new KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>
-                        (new Vector(Int32.Parse(words[2]), Int32.Parse(words[5])), 
+                        (new Vector(Int32.Parse(words[2]), Int32.Parse(words[5])),
                         new List<KeyValuePair<Vector, int>>()));
                 }
                 else
@@ -193,7 +193,7 @@ namespace Lost_boy
         public ILevelBuilder SetContent(Setup.LevelInfoHolder info)
         {
             var roads = ReadRoad(info.data.SkipWhile(line => line != "---").Skip(1));
-            var es = ReadEnemies(info.data.TakeWhile(line => line!= "---"));
+            var es = ReadEnemies(info.data.TakeWhile(line => line != "---"));
             var enemiesIter = es.GetEnumerator();
             var roadsToStartsIter = roads.GetEnumerator();
             CalculateFormation(es);

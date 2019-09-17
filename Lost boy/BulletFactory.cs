@@ -43,11 +43,16 @@ namespace Lost_boy.BulletFactory
             bullet.dmgModifiers += this.dmgModifiers;
         }
 
-        public int Price { get { 
-            return 
-                10 + 
-                dmgModifiers.GetInvocationList().Length * 10 + 
-                onHits.GetInvocationList().Length * 15; } }
+        public int Price
+        {
+            get
+            {
+                return
+                    10 +
+                    dmgModifiers.GetInvocationList().Length * 10 +
+                    onHits.GetInvocationList().Length * 15;
+            }
+        }
 
         public void Equip(PlayerShip player)
         {
@@ -133,7 +138,7 @@ namespace Lost_boy.BulletFactory
         {
             private Direction direction;
 
-            public override int RechargeTime { get { return VALUES.BASIC_LASER_RECHARGE * 7/5; } }
+            public override int RechargeTime { get { return VALUES.BASIC_LASER_RECHARGE * 7 / 5; } }
 
             public override IBullet Create(Vector where)
             {

@@ -307,8 +307,8 @@ namespace Lost_boy.Enemies
         {
             int stealthTime = 0;
             int stealthBreak = 0;
-            this.color = Color.Cornsilk;            
-            switch(tier)
+            this.color = Color.Cornsilk;
+            switch (tier)
             {
                 case Tier.T1:
                     this.Defence = 0;
@@ -347,7 +347,7 @@ namespace Lost_boy.Enemies
                     stealthTime = 5000;
                     break;
             }
-            this.MaxHealth = Health;
+            this.Health = MaxHealth;
             timerToBlack = new Timer(stealthBreak);
             timerToNormal = new Timer(stealthTime);
             timerToBlack.Elapsed += (s, e) => GoBlack();
@@ -397,9 +397,9 @@ namespace Lost_boy.Enemies
                     this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
                     this.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(5));
                     this.Weapon.Ammo.AppendDmgModifier((ref int i) =>
-                        {
-                            i += 10;
-                        });
+                    {
+                        i += 10;
+                    });
                     this.Health = MaxHealth;
                     break;
 
@@ -476,9 +476,9 @@ namespace Lost_boy.Enemies
                     this.Weapon.AppendOnShot(new OnShots.SizeChange(5));
                     this.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(10, 3, 50));
                     this.Weapon.Ammo.AppendDmgModifier((ref int i) =>
-                        {
-                            i += 10;
-                        });
+                    {
+                        i += 10;
+                    });
                     this.Health = MaxHealth;
                     break;
 
@@ -507,9 +507,11 @@ namespace Lost_boy.Enemies
 
     public class CasualEnemy : EnemyShip
     {
+        private Func<IMovementStrategy> msReturn;
+
         public override void SetDefaultMoveStrategy()
         {
-            MovementStrategy = new NormalMovementStrategy();
+            MovementStrategy = msReturn();
         }
 
         public override string ToString()
@@ -530,6 +532,7 @@ namespace Lost_boy.Enemies
                     this.Weapon.AppendOnShot(new OnShots.ColorChage(color));
                     this.ShootingChance = 70;
                     this.Health = MaxHealth;
+                    this.msReturn = () => new NormalMovementStrategy();
                     break;
 
                 case Tier.T2:
@@ -543,9 +546,10 @@ namespace Lost_boy.Enemies
                     this.Weapon.AppendOnShot(new OnShots.SpeedChange(5));
                     this.Weapon.Ammo.AppendOnHit(new OnHits.BurnChance(5, 3, 100));
                     this.Weapon.Ammo.AppendDmgModifier((ref int i) =>
-                        {
-                            i += 5;
-                        });
+                    {
+                        i += 5;
+                    });
+                    this.msReturn = () => new DanceInRectangleStrategy();
                     this.Health = MaxHealth;
                     break;
 
@@ -554,6 +558,7 @@ namespace Lost_boy.Enemies
                     this.MaxHealth = 4 * VALUES.ENEMY_HEALTH;
                     this.MaxSpeed = 20;
                     this.color = Color.Chartreuse;
+                    this.msReturn = () => new DanceInRectangleStrategy();
                     this.Weapon = new Weapon.T2.DoubleWeapon(
                         new BulletFactory.T2.HellHotFactory(Direction.Down));
                     this.Weapon.AppendOnShot(new OnShots.ColorChage(color));

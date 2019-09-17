@@ -60,20 +60,20 @@ namespace Lost_boy.Ammo
         }
     }
 
-   namespace T2
-   {
-       public class HellHotLaser : T1.BasicLaser
-       {
-           public HellHotLaser(Vector position, Direction dir) :
-               base(position, dir)
-           {
-               Size = new Vector(Size.X + 2, Size.Y + 4);
-               Speed = new Vector(Speed.X, Speed.Y + 5);
-               Damage += 5;
-               onHits += new OnHits.BurnChance(10, 3, 25);
-           }
-       }
-   }
+    namespace T2
+    {
+        public class HellHotLaser : T1.BasicLaser
+        {
+            public HellHotLaser(Vector position, Direction dir) :
+                base(position, dir)
+            {
+                Size = new Vector(Size.X + 2, Size.Y + 4);
+                Speed = new Vector(Speed.X, Speed.Y + 5);
+                Damage += 5;
+                onHits += new OnHits.BurnChance(10, 3, 25);
+            }
+        }
+    }
 
     namespace T3
     {
@@ -86,7 +86,7 @@ namespace Lost_boy.Ammo
             {
                 int dmg = Damage;
                 if (dmgModifiers != null)
-                dmgModifiers(ref dmg);
+                    dmgModifiers(ref dmg);
                 onHits(ship);
                 ship.TakeTrueDamage(dmg);
             }

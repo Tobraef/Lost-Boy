@@ -19,31 +19,26 @@ namespace Lost_boy
         public Difficulty Difficulty
         {
             get;
-            private set;
         }
 
         public Tier Tier
         {
             get;
-            private set;
         }
 
         public Color Color
         {
             get;
-            private set;
         }
 
         public Vector MiddlePoint
         {
             get;
-            private set;
         }
 
         public LevelType Type
         {
             get;
-            private set;
         }
 
         public void Draw(Graphics g, Pen p)
@@ -59,7 +54,7 @@ namespace Lost_boy
 
         private Tier TierRandomizer()
         {
-            switch (VALUES.random.Next(3))
+            switch(VALUES.random.Next(3))
             {
                 case 0: return Tier.T1;
                 case 1: return Tier.T2;
@@ -168,7 +163,7 @@ namespace Lost_boy
             p.Color = Color.Red;
             g.DrawRectangle(p, playerStar.Value.MiddlePoint.X - 20, playerStar.Value.MiddlePoint.Y - 20, 40, 40);
             p.Color = Color.Green;
-            g.DrawEllipse(p, playerStar.Value.MiddlePoint.X - playerReach, playerStar.Value.MiddlePoint.Y - playerReach, playerReach * 2, playerReach * 2);
+            g.DrawEllipse(p, playerStar.Value.MiddlePoint.X - playerReach, playerStar.Value.MiddlePoint.Y - playerReach, playerReach*2, playerReach*2);
         }
 
         public void Elapse()
@@ -218,7 +213,7 @@ namespace Lost_boy
                     Text = !pressed.isValid ?
                            "Empty" :
                            "Difficulty: " + pressed.Difficulty +
-                           "\nTier: " + pressed.Tier +
+                           "\nTier: " + pressed.Tier + 
                            "\nType: " + pressed.Type,
                     X = pressed.MiddlePoint.X,
                     Y = pressed.MiddlePoint.Y + 10
@@ -240,7 +235,7 @@ namespace Lost_boy
                 case MouseButtons.Middle:
                     break;
             }
-
+            
         }
 
         private static bool IsReachable(List<Star> stars, Vector starPosition)
@@ -292,7 +287,7 @@ namespace Lost_boy
 
         private Color ParseColor(string color)
         {
-            switch (color)
+            switch(color)
             {
                 case "[Blue]": return Color.Blue;
                 case "[Green]": return Color.Green;

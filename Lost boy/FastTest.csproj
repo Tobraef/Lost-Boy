@@ -76,28 +76,40 @@
   <ItemGroup>
     <Compile Include="BasicLaser.cs" />
     <Compile Include="BasicWeapon.cs" />
+    <Compile Include="Beam.cs" />
     <Compile Include="Body.cs" />
     <Compile Include="Bonus.cs" />
+    <Compile Include="Bullet.cs" />
     <Compile Include="BulletFactory.cs" />
+    <Compile Include="ClassicLevel.cs" />
     <Compile Include="Effect.cs" />
     <Compile Include="EnemyShip.cs" />
+    <Compile Include="EventResult.cs" />
+    <Compile Include="ExplosiveBullet.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Getters.cs" />
     <Compile Include="GoldCoin.cs" />
     <Compile Include="HPBar.cs" />
     <Compile Include="Interfaces.cs" />
-    <Compile Include="Laser.cs" />
-    <Compile Include="Level.cs" />
+    <Compile Include="LevelBuilder.cs" />
     <Compile Include="LevelSetup.cs" />
+    <Compile Include="Meteor.cs" />
+    <Compile Include="MeteorDispenser.cs" />
+    <Compile Include="MeteorLevel.cs" />
     <Compile Include="MovementStrategy.cs" />
     <Compile Include="Mover.cs" />
+    <Compile Include="PlasmaBullet.cs" />
     <Compile Include="PlayerShip.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scrap.cs" />
+    <Compile Include="StarEvent.cs" />
+    <Compile Include="StarMap.cs" />
     <Compile Include="Vector.cs" />
   </ItemGroup>
   <ItemGroup>

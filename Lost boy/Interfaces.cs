@@ -88,6 +88,8 @@ namespace Lost_boy
         public const int HEIGHT = 600;
         public const int WIDTH = 1000;
 
+        public static readonly Font FONT = new Font("Arial", 14);
+
         public const int HP_BAR_WIDTH = 100;
         public const int HP_BAR_HEIGHT = 10;
 
@@ -356,6 +358,19 @@ namespace Lost_boy
         ILevelBuilder SetContent(Setup.LevelInfoHolder info);
         ILevelBuilder SetFinishedAction(Action<bool> action);
         ILevel Build();
+
+    }
+
+    public interface IEvent
+    {
+        event Action<bool> PlayerChose;
+        void Draw(Graphics g, Pen p);
+        void AcceptPlayerChoice(Vector choice);
+    }
+
+    public interface IEventResult
+    {
+        void RandomizeResult();
 
     }
 }
