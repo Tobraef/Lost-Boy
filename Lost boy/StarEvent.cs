@@ -7,76 +7,80 @@ using System.Threading.Tasks;
 
 namespace Lost_boy.Event
 {
-    public class PlayerDependentEvent : IEvent
+    public class Event : IEvent
     {
-        private readonly Dictionary<Vector, TextBox> options = new Dictionary<Vector, TextBox>();
-        private readonly List<Vector> correctOptions = new List<Vector>();
-        public event Action<bool> PlayerChose;
+        private string description;
+        private Dictionary<TextBox, EventOption> options =
+            new Dictionary<TextBox, EventOption>();
 
-        public string Description
+        public Action<IEvent> NextStage
         {
             get;
-            private set;
+            set;
+        }
+
+        public void HandleChoice(Vector where)
+        {
+            EventOption selected = null;
+            foreach (var pair in options)
+            {
+                var frame = pair.Key;
+                if (frame.Position.X > where.X && frame.Position.X + frame.Size.Width < where.X &&
+                    frame.Position.Y > where.Y && frame.Position.Y + frame.Size.Height < where.Y)
+                {
+                    selected = pair.Value;
+                    break;
+                }
+            }
+            NextStage(selected.Trigger());
         }
 
         public void Draw(Graphics g, Pen p)
         {
             p.Color = Color.White;
-            g.DrawString(Description, VALUES.FONT, p.Brush, new PointF(50, 50));
-            foreach (var box in options.Values)
+            foreach (var box in options.Keys)
             {
-                box.Draw(g, p);
+                box.Draw(g,p);
             }
         }
 
-        public void AcceptPlayerChoice(Vector choice)
+        public Event(string description, Dictionary<TextBox, EventOption> options, PlayerShip player)
         {
-            var clicked = options
-                .Keys
-                .Where(pos =>
-                pos.X <= choice.X &&
-                pos.X + 100 > choice.X &&
-                pos.Y <= choice.Y &&
-                pos.Y + 50 > choice.Y);
-            if (clicked.Count() != 0)
-            {
-                if (correctOptions.Exists(correctOption =>
-                    clicked.First().X == correctOption.X &&
-                    clicked.First().Y == correctOption.Y))
-                    PlayerChose(true);
-                else
-                    PlayerChose(false);
-            }
+            this.description = description;
+            this.options = options;
+        }
+    }
+
+    public class FinishEvent : IEvent
+    {
+        private string description;
+
+        public Action<IEvent> NextStage
+        {
+            get;
+            set;
         }
 
-        public PlayerDependentEvent(string[] input, List<string> options, int correctAnswer, List<string> playerRequirements)
+        public void HandleChoice(Vector where)
         {
-            Description = input[0];
-            PlayerChose += answer => Description = answer ? input[1] : input[2];
-            int id = 0;
-            foreach (var option in options)
-            {
-                Vector nextPos = new Vector(100, 200 + id * 50);
-                id++;
-                if (id == correctAnswer)
-                    correctOptions.Add(nextPos);
-                this.options.Add(nextPos, new TextBox(nextPos, option, Color.White));
-            }
+            NextStage(null);
+        }
 
-            foreach (var option in playerRequirements)
-            {
-                Vector nextPos = new Vector(100, 200 + id * 50);
-                id++;
-                correctOptions.Add(nextPos);
-                this.options.Add(nextPos, new TextBox(nextPos, option, Color.Blue));
-            }
+        public void Draw(Graphics g, Pen p)
+        {
+            p.Color = Color.White;
+            g.DrawString(description, VALUES.FONT, p.Brush, 50, 50);
+        }
+
+        public FinishEvent(string description)
+        {
+            this.description = description + "\nClick anywhere to continue";
         }
     }
 
     class TextBox
     {
         private Rectangle bounds;
-        private readonly Color color;
 
         public string Text
         {
@@ -84,18 +88,66 @@ namespace Lost_boy.Event
             set;
         }
 
+        public Point Position
+        {
+            get { return bounds.Location; }
+        }
+
+        public Size Size
+        {
+            get { return bounds.Size; }
+        }
+
         public void Draw(Graphics g, Pen p)
         {
-            p.Color = color;
             g.DrawString(Text, VALUES.FONT, p.Brush, bounds);
             g.DrawRectangle(p, bounds);
         }
 
         public TextBox(Vector where, string txt, Color c)
         {
-            color = c;
             Text = txt;
             bounds = new Rectangle(where, new Size(txt.Length * 5, 50));
+        }
+    }
+
+    interface IEventOption
+    {
+        IEvent Trigger();
+    }
+
+    public class EventOption : IEventOption
+    {
+        private Func<IEvent> eventTrigger;
+
+        public IEvent Trigger()
+        {
+            return eventTrigger();
+        }
+
+        public EventOption(Func<IEvent> trigger)
+        {
+            eventTrigger = trigger;
+        }
+    }
+
+    public class SplitEventOption : IEventOption
+    {
+        private Func<IEvent> succes;
+        private Func<IEvent> fail;
+
+        public IEvent Trigger()
+        {
+            if (VALUES.random.Next(100) > 50)
+                return succes();
+            else
+                return fail();
+        }
+
+        public SplitEventOption(Func<IEvent> OnSucces, Func<IEvent> OnFail)
+        {
+            succes = OnSucces;
+            fail = OnFail;
         }
     }
 }
