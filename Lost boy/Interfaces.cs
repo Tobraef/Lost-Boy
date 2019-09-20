@@ -81,6 +81,13 @@ namespace Lost_boy
         Event
     }
 
+    public enum LevelEnding
+    {
+        GoToStarMap,
+        ForceClassicLevel,
+
+    }
+
     public static class VALUES
     {
         public static Random random = new Random(5);
@@ -358,19 +365,16 @@ namespace Lost_boy
         ILevelBuilder SetContent(Setup.LevelInfoHolder info);
         ILevelBuilder SetFinishedAction(Action<bool> action);
         ILevel Build();
-
     }
 
     public interface IEvent
     {
-        event Action<bool> PlayerChose;
+        Action NextStage
+        {
+            get;
+            set;
+        }
+        void HandleChoice(Vector where);
         void Draw(Graphics g, Pen p);
-        void AcceptPlayerChoice(Vector choice);
-    }
-
-    public interface IEventResult
-    {
-        void RandomizeResult();
-
     }
 }

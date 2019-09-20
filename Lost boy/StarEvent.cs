@@ -13,7 +13,7 @@ namespace Lost_boy.Event
         private Dictionary<TextBox, EventOption> options =
             new Dictionary<TextBox, EventOption>();
 
-        public Action<IEvent> NextStage
+        public Action NextStage
         {
             get;
             set;
@@ -32,53 +32,41 @@ namespace Lost_boy.Event
                     break;
                 }
             }
-            NextStage(selected.Trigger());
-        }
-
-        public void Draw(Graphics g, Pen p)
-        {
-            p.Color = Color.White;
-            foreach (var box in options.Keys)
+            if (selected != null)
             {
-                box.Draw(g,p);
+                Transition(selected.Trigger());
             }
         }
 
-        public Event(string description, Dictionary<TextBox, EventOption> options, PlayerShip player)
+        private void Transition(EventInfo nextStage)
         {
-            this.description = description;
-            this.options = options;
-        }
-    }
-
-    public class FinishEvent : IEvent
-    {
-        private string description;
-
-        public Action<IEvent> NextStage
-        {
-            get;
-            set;
-        }
-
-        public void HandleChoice(Vector where)
-        {
-            NextStage(null);
+            this.description = nextStage.description;
+            this.options = nextStage.options;
         }
 
         public void Draw(Graphics g, Pen p)
         {
             p.Color = Color.White;
             g.DrawString(description, VALUES.FONT, p.Brush, 50, 50);
+            foreach (var box in options.Keys)
+            {
+                box.Draw(g, p);
+            }
         }
 
-        public FinishEvent(string description)
+
+
+        public Event(string description, Dictionary<TextBox, EventOption> opts)
         {
-            this.description = description + "\nClick anywhere to continue";
+            this.description = description;
+            foreach (var option in opts)
+            {
+                this.options.Add(option.Key, option.Value);
+            }
         }
     }
 
-    class TextBox
+    public class TextBox
     {
         private Rectangle bounds;
 
@@ -113,19 +101,19 @@ namespace Lost_boy.Event
 
     interface IEventOption
     {
-        IEvent Trigger();
+        EventInfo Trigger();
     }
 
     public class EventOption : IEventOption
     {
-        private Func<IEvent> eventTrigger;
+        private Func<EventInfo> eventTrigger;
 
-        public IEvent Trigger()
+        public EventInfo Trigger()
         {
             return eventTrigger();
         }
 
-        public EventOption(Func<IEvent> trigger)
+        public EventOption(Func<EventInfo> trigger)
         {
             eventTrigger = trigger;
         }
@@ -133,10 +121,10 @@ namespace Lost_boy.Event
 
     public class SplitEventOption : IEventOption
     {
-        private Func<IEvent> succes;
-        private Func<IEvent> fail;
+        private Func<EventInfo> succes;
+        private Func<EventInfo> fail;
 
-        public IEvent Trigger()
+        public EventInfo Trigger()
         {
             if (VALUES.random.Next(100) > 50)
                 return succes();
@@ -144,10 +132,16 @@ namespace Lost_boy.Event
                 return fail();
         }
 
-        public SplitEventOption(Func<IEvent> OnSucces, Func<IEvent> OnFail)
+        public SplitEventOption(Func<EventInfo> OnSucces, Func<EventInfo> OnFail)
         {
             succes = OnSucces;
             fail = OnFail;
         }
+    }
+
+    public class EventInfo
+    {
+        public string description;
+        public Dictionary<TextBox, EventOption> options;
     }
 }
