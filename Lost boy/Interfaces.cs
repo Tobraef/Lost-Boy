@@ -367,13 +367,13 @@ namespace Lost_boy
         ILevel Build();
     }
 
+    public interface IEventOption
+    {
+        Event.EventInfo Trigger();
+    }
+
     public interface IEvent
     {
-        Action NextStage
-        {
-            get;
-            set;
-        }
         void HandleChoice(Vector where);
         void Draw(Graphics g, Pen p);
     }
