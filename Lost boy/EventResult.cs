@@ -6,8 +6,4 @@ using System.Threading.Tasks;
 
 namespace Lost_boy.Event
 {
-    public class EventResult : IEventResult
-    {
-
-    }
 }

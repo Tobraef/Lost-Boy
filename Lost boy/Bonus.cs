@@ -7,7 +7,7 @@ using System.Drawing;
 
 namespace Lost_boy
 {
-    public abstract class Bonus : Mover, IProjectile
+    public abstract class Bonus : Mover, IItem, IBonus
     {
         public event Action<IProjectile> OnRecycle;
         private Rectangle drawable;
@@ -26,6 +26,21 @@ namespace Lost_boy
             onDeath();
         }
 
+        public int Price
+        {
+            get { return 20; }
+        }
+
+        public void AddToInventory(IHolder player)
+        {
+            onHits((PlayerShip)player);
+        }
+
+        public void SellFrom(IHolder holder)
+        {
+            throw new NotImplementedException("No idea how you managed to sell a bonus");
+        }
+
         public override void Move()
         {
             base.Move();
@@ -39,7 +54,7 @@ namespace Lost_boy
             g.DrawRectangle(p, drawable);
         }
 
-        public abstract Bonus Clone(Vector position);
+        public abstract IBonus Clone(Vector position);
 
         public void Recycle()
         {
@@ -60,9 +75,14 @@ namespace Lost_boy
 
     public class BulletSpeedBonus : Bonus
     {
-        public override Bonus Clone(Vector position)
+        public override IBonus Clone(Vector position)
         {
             return new BulletSpeedBonus(position);
+        }
+
+        public override string ToString()
+        {
+            return "Bullet speed";
         }
 
         public BulletSpeedBonus(Vector position) :
@@ -78,9 +98,14 @@ namespace Lost_boy
 
     public class LaserDamageBonus : Bonus
     {
-        public override Bonus Clone(Vector position)
+        public override IBonus Clone(Vector position)
         {
             return new LaserDamageBonus(position);
+        }
+
+        public override string ToString()
+        {
+            return "Laser damage";
         }
 
         public LaserDamageBonus(Vector position) :
@@ -89,7 +114,7 @@ namespace Lost_boy
             {
                 ship.Weapon.Ammo.AppendDmgModifier((ref int val) =>
                 {
-                    val += 2;
+                    val += 3;
                 });
             })
         {
@@ -99,9 +124,14 @@ namespace Lost_boy
 
     public class BulletSizeChangeBonus : Bonus
     {
-        public override Bonus Clone(Vector position)
+        public override IBonus Clone(Vector position)
         {
             return new BulletSizeChangeBonus(position);
+        }
+
+        public override string ToString()
+        {
+            return "Bullet size";
         }
 
         public BulletSizeChangeBonus(Vector position) :
@@ -117,9 +147,14 @@ namespace Lost_boy
 
     public class BurnBonus : Bonus
     {
-        public override Bonus Clone(Vector position)
+        public override IBonus Clone(Vector position)
         {
             return new BurnBonus(position);
+        }
+
+        public override string ToString()
+        {
+            return "Bullet burn";
         }
 
         public BurnBonus(Vector position) :
@@ -135,9 +170,14 @@ namespace Lost_boy
 
     public class WeaponReloadTimeBonus : Bonus
     {
-        public override Bonus Clone(Vector position)
+        public override IBonus Clone(Vector position)
         {
             return new WeaponReloadTimeBonus(position);
+        }
+
+        public override string ToString()
+        {
+            return "Weapon reload";
         }
 
         public WeaponReloadTimeBonus(Vector position) :
@@ -157,9 +197,14 @@ namespace Lost_boy
 
     public class HealthBonus : Bonus
     {
-        public override Bonus Clone(Vector position)
+        public override IBonus Clone(Vector position)
         {
             return new HealthBonus(position);
+        }
+
+        public override string ToString()
+        {
+            return "Heal";
         }
 
         public HealthBonus(Vector position) :
@@ -175,9 +220,14 @@ namespace Lost_boy
 
     public class ShipSpeedBonus : Bonus
     {
-        public override Bonus Clone(Vector position)
+        public override IBonus Clone(Vector position)
         {
             return new ShipSpeedBonus(position);
+        }
+
+        public override string ToString()
+        {
+            return "Ship speed";
         }
 
         public ShipSpeedBonus(Vector position) :
@@ -193,9 +243,14 @@ namespace Lost_boy
 
     public class ArmorMeltBonus : Bonus
     {
-        public override Bonus Clone(Vector position)
+        public override IBonus Clone(Vector position)
         {
             return new ArmorMeltBonus(position);
+        }
+
+        public override string ToString()
+        {
+            return "Armor melt";
         }
 
         public ArmorMeltBonus(Vector position) :
@@ -209,9 +264,14 @@ namespace Lost_boy
 
     public class FrostBonus : Bonus
     {
-        public override Bonus Clone(Vector position)
+        public override IBonus Clone(Vector position)
         {
             return new FrostBonus(position);
+        }
+
+        public override string ToString()
+        {
+            return "Slow effect";
         }
 
         public FrostBonus(Vector position) :
@@ -219,6 +279,27 @@ namespace Lost_boy
                 ship =>
                 {
                     ship.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(5));
+                })
+        { }
+    }
+
+    public class ArmorBonus : Bonus
+    {
+        public override IBonus Clone(Vector position)
+        {
+            return new ArmorBonus(position);
+        }
+
+        public override string ToString()
+        {
+            return "Armor";
+        }
+
+        public ArmorBonus(Vector position) :
+            base(position,
+                ship =>
+                {
+                    ship.Defence += 2;
                 })
         { }
     }

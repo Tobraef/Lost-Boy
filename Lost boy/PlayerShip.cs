@@ -7,14 +7,21 @@ using System.Drawing;
 
 namespace Lost_boy
 {
-    public class PlayerShip : Mover, IShip
+    public class PlayerShip : Mover, IShip, IHolder
     {
         private event Modify onDamageTaken;
         private Rectangle rectangle;
         private int maxHealth;
         private Color color = Color.Green;
         private HPBar hpBar;
-        private List<IItem> backpack = new List<IItem>();
+        private List<IEquipable> backpack = new List<IEquipable>();
+        private Dictionary<IItem, int> scraps = new Dictionary<IItem, int> 
+        {
+            { new Scrap(ScrapType.Carbon), 100 },
+            { new Scrap(ScrapType.Steel), 100 },
+            { new Scrap(ScrapType.Uranium), 100 },
+            { new Scrap(ScrapType.Plutonium), 100 }
+        };
         public event Action onDeath;
 
         public IWeapon Weapon
@@ -23,9 +30,14 @@ namespace Lost_boy
             set;
         }
 
-        public List<IItem> Backpack
+        public List<IEquipable> Backpack
         {
             get { return backpack; }
+        }
+
+        public Dictionary<IItem, int> Scraps
+        {
+            get { return scraps; }
         }
 
         public int MaxHealth
@@ -85,8 +97,6 @@ namespace Lost_boy
         {
             this.Health -= val;
             this.hpBar.HpChanged(Health);
-            if (Health <= 0)
-                onDeath();
         }
 
         public void Shoot()
@@ -124,12 +134,6 @@ namespace Lost_boy
                 this.Position.X + this.Size.X > projectile.Position.X &&
                 this.Position.Y < projectile.Position.Y + projectile.Size.Y &&
                 this.Position.Y + this.Size.Y > projectile.Position.Y;
-        }
-
-        void Sell(IItem item)
-        {
-            backpack.Remove(item);
-            Gold += item.Price;
         }
 
         void Buy(IItem item)

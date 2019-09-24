@@ -12,8 +12,8 @@ namespace Lost_boy
 {
     public partial class Form1 : Form
     {
+        public static PlayerShip player;
         IPlayAble level;
-        PlayerShip player;
         Timer timer;
         Setup.LevelSetup setup;
         private int playerStar = 1;
@@ -37,6 +37,12 @@ namespace Lost_boy
                 case Keys.Space:
                     level.HandlePlayer(' ');
                     break;
+                case Keys.F:
+                    level.HandlePlayer('f');
+                    break;
+                case Keys.C:
+                    level.HandlePlayer('c');
+                    break;
                 default:
                     break;
             }
@@ -57,6 +63,9 @@ namespace Lost_boy
                     break;
                 case Keys.D4:
                     setup.AppendEnemyToRoad(Enemies.EnemyTypes.Rocky);
+                    break;
+                case Keys.D5:
+                    setup.AppendEnemyToRoad(Enemies.EnemyTypes.Stealthy);
                     break;
                 case Keys.Space:
                     string path = System.IO.Directory.GetCurrentDirectory();
@@ -111,7 +120,6 @@ namespace Lost_boy
         {
             level.Elapse();
             Refresh();
-            level.PrepareNextStage();
         }
 
         private void PaintGame(object sender, PaintEventArgs e)
@@ -139,7 +147,8 @@ namespace Lost_boy
         private void InitializePlayer()
         {
             player = new PlayerShip();
-            player.Weapon = new Weapon.T2.DoubleWeapon(new BulletFactory.T2.HellHotFactory(Direction.Up));
+            player.Gold = 250;
+            player.Weapon = new Weapon.T2.DoubleWeapon(new BulletFactory.T2.NapalmFactory(Direction.Up));
         }
 
         private void PLAY()
@@ -183,6 +192,8 @@ namespace Lost_boy
                     builder = new Meteor.MeteorLevelBuilder();
                 else if (info.type == LevelType.Event)
                     ;// builder = new EventLevelBuilder();
+                else if (info.type == LevelType.Shop)
+                    builder = new GroceryLevelBuilder();
                 SetLevel(info, builder);
             }
             level.Begin();

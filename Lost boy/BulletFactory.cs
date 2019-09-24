@@ -8,7 +8,7 @@ using System.Drawing;
 namespace Lost_boy.BulletFactory
 {
     using Ammo;
-    public abstract class BulletFactory : IBulletFactory
+    public abstract class BulletFactory : IBulletFactory, IEquipable
     {
         private event Action<IShip> onHits;
         private event Modify dmgModifiers;
@@ -43,25 +43,29 @@ namespace Lost_boy.BulletFactory
             bullet.dmgModifiers += this.dmgModifiers;
         }
 
-        public int Price
-        {
-            get
-            {
-                return
-                    10 +
-                    dmgModifiers.GetInvocationList().Length * 10 +
-                    onHits.GetInvocationList().Length * 15;
-            }
-        }
+        public int Price { get {
+            int price = 10;
+            if (onHits != null)
+                price += onHits.GetInvocationList().Length * 10;
+            if (dmgModifiers != null)
+                price += dmgModifiers.GetInvocationList().Length * 10;
+            return price;
+        } }
 
-        public void Equip(PlayerShip player)
+        public void EquipOn(PlayerShip player)
         {
-            player.Backpack.Add(player.Weapon.Ammo);
+            player.Backpack.Add((IEquipable)player.Weapon.Ammo);
             player.Weapon.Ammo = this;
             player.Backpack.Remove(this);
         }
 
-        public void AddToInventory(PlayerShip player)
+        public void SellFrom(IHolder holder)
+        {
+            holder.Backpack.Remove(this);
+            holder.Gold += Price;
+        }
+
+        public void AddToInventory(IHolder player)
         {
             player.Backpack.Add(this);
         }
@@ -81,6 +85,11 @@ namespace Lost_boy.BulletFactory
                 ApplyDmgModifier(bullet);
                 ApplyOnHits(bullet);
                 return bullet;
+            }
+
+            public override string ToString()
+            {
+                return "Basic laser";
             }
 
             public BasicLaserFactory(Direction dir)
@@ -107,11 +116,17 @@ namespace Lost_boy.BulletFactory
             {
                 direction = dir;
             }
+
+            public override string ToString()
+            {
+                return "Plasma";
+            }
         }
 
         public class ExplosiveBulletFactory : BulletFactory, IExplosiveFactory
         {
             private Direction direction;
+
             public Action<IProjectile> BulletAdder
             {
                 set;
@@ -132,13 +147,18 @@ namespace Lost_boy.BulletFactory
             {
                 this.direction = dir;
             }
+
+            public override string ToString()
+            {
+                return "Explosive Bullet";
+            }
         }
 
         public class FrostyLaserFactory : BulletFactory
         {
             private Direction direction;
 
-            public override int RechargeTime { get { return VALUES.BASIC_LASER_RECHARGE * 7 / 5; } }
+            public override int RechargeTime { get { return VALUES.BASIC_LASER_RECHARGE * 7/5; } }
 
             public override IBullet Create(Vector where)
             {
@@ -154,6 +174,11 @@ namespace Lost_boy.BulletFactory
                 direction = dir;
                 this.AppendOnHit(s => s.MaxSpeed -= 1);
                 this.AppendDmgModifier((ref int i) => i += 5);
+            }
+
+            public override string ToString()
+            {
+                return "Slowing laser";
             }
         }
 
@@ -175,6 +200,11 @@ namespace Lost_boy.BulletFactory
             {
                 direction = dir;
                 this.AppendOnHit(new OnHits.ArmorMeltEffect(10));
+            }
+
+            public override string ToString()
+            {
+                return "Beam";
             }
         }
     }
@@ -200,6 +230,11 @@ namespace Lost_boy.BulletFactory
             {
                 direction = dir;
             }
+
+            public override string ToString()
+            {
+                return "Hell hot laser";
+            }
         }
 
         public class StarPlasmaFactory : BulletFactory
@@ -219,6 +254,11 @@ namespace Lost_boy.BulletFactory
             public StarPlasmaFactory(Direction dir)
             {
                 direction = dir;
+            }
+
+            public override string ToString()
+            {
+                return "Star plasma";
             }
         }
 
@@ -245,6 +285,11 @@ namespace Lost_boy.BulletFactory
             {
                 this.direction = dir;
             }
+
+            public override string ToString()
+            {
+                return "Napalm";
+            }
         }
 
         public class IcyLaserFactory : BulletFactory
@@ -268,6 +313,11 @@ namespace Lost_boy.BulletFactory
                 this.AppendOnHit(s => s.MaxSpeed -= 2);
                 this.AppendDmgModifier((ref int i) => i += 10);
             }
+
+            public override string ToString()
+            {
+                return "Stunning laser";
+            }
         }
 
         public class MortalCoilFactory : BulletFactory
@@ -288,6 +338,11 @@ namespace Lost_boy.BulletFactory
             {
                 direction = dir;
                 this.AppendOnHit(new OnHits.ArmorMeltEffect(10));
+            }
+
+            public override string ToString()
+            {
+                return "Mortal coil";
             }
         }
     }
@@ -313,6 +368,11 @@ namespace Lost_boy.BulletFactory
             {
                 direction = dir;
             }
+
+            public override string ToString()
+            {
+                return "Annihilator";
+            }
         }
 
         public class DecimatorFactory : BulletFactory
@@ -333,9 +393,14 @@ namespace Lost_boy.BulletFactory
             {
                 direction = dir;
             }
+
+            public override string ToString()
+            {
+                return "Decimator";
+            }
         }
 
-        public class ArmaggedonFactory : BulletFactory
+        public class ArmaggedonFactory : BulletFactory, IExplosiveFactory
         {
             private Direction direction;
             public Action<IProjectile> BulletAdder
@@ -358,6 +423,11 @@ namespace Lost_boy.BulletFactory
             {
                 this.direction = dir;
             }
+
+            public override string ToString()
+            {
+                return "Armaggedon";
+            }
         }
 
         public class DisintegratorFactory : BulletFactory
@@ -378,6 +448,11 @@ namespace Lost_boy.BulletFactory
             {
                 direction = dir;
                 this.AppendOnHit(new OnHits.ArmorMeltEffect(10));
+            }
+
+            public override string ToString()
+            {
+                return "Disintegrator";
             }
         }
     }

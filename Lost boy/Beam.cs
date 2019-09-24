@@ -14,19 +14,18 @@ namespace Lost_boy.Ammo
             public override event Action onDeath;
             private Vector size;
             private Rectangle drawable;
-            private bool lifeSpan = true;
+            private int lifeSpan = 2;
 
             public override void Move()
             {
                 drawable.X = Position.X;
                 drawable.Y = Position.Y;
-                if (lifeSpan)
+                if (lifeSpan > 0)
                 {
-                    lifeSpan = false;
+                    lifeSpan--;
                 }
                 else
                 {
-                    lifeSpan = true;
                     onDeath();
                 }
             }
@@ -40,6 +39,7 @@ namespace Lost_boy.Ammo
                 set
                 {
                     size = value;
+                    size.Y -= VALUES.PLAYER_HEIGHT;
                     drawable.Width = value.X;
                     drawable.Height = value.Y;
                 }
@@ -47,7 +47,7 @@ namespace Lost_boy.Ammo
 
             public override void AffectShip(IShip ship)
             {
-                if (lifeSpan)
+                if (lifeSpan > 0)
                     base.AffectShip(ship);
             }
 
@@ -66,6 +66,7 @@ namespace Lost_boy.Ammo
                 30)
             {
                 this.direction = dir;
+                this.OnRecycle += t => lifeSpan = 2;
                 this.drawable = new Rectangle
                 {
                     X = position.X,

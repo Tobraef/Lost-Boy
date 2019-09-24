@@ -13,10 +13,10 @@ namespace Lost_boy
         public event Action<bool> Finished;
 
         public void HandlePlayer(char key)
-        { }
+        {}
 
         public void HandlePlayer_KeyUp(char key)
-        { }
+        {}
 
         public void HandlePlayer_Mouse(System.Windows.Forms.MouseEventArgs m)
         {
@@ -24,10 +24,10 @@ namespace Lost_boy
         }
 
         public void Begin()
-        { }
+        {}
 
         public void Elapse()
-        { }
+        {}
 
         private void NewEventStage(IEvent newEvent)
         {

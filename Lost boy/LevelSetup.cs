@@ -128,7 +128,7 @@ namespace Lost_boy
             {
                 roadSetup.CloseRoad();
             }
-
+            
             private List<string> ConvertEnemies(List<List<string>> list)
             {
                 List<string> toRet = new List<string>();
@@ -240,6 +240,8 @@ namespace Lost_boy
                         return LevelType.Meteor;
                     case "Event":
                         return LevelType.Classic;
+                    case "Shop":
+                        return LevelType.Shop;
                 }
                 throw new NotImplementedException("No such level type as " + s);
             }

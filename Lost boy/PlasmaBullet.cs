@@ -7,7 +7,7 @@ using System.Drawing;
 
 namespace Lost_boy.Ammo
 {
-    namespace T1
+    namespace T1 
     {
         public class PlasmaBullet : Bullet
         {
@@ -76,7 +76,7 @@ namespace Lost_boy.Ammo
             {
                 Speed = new Vector(Speed.X, Speed.Y - 5);
                 Damage += 5;
-                Size = new Vector(Size.X * 2, Size.Y * 2);
+                Size = new Vector(Size.X *2, Size.Y * 2);
                 onHits += new OnHits.ArmorMeltEffect(1);
             }
         }

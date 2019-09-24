@@ -13,8 +13,7 @@ namespace Lost_boy
         PlayerShip player;
         private List<EnemyShip> enemies = new List<EnemyShip>();
         private List<EnemyShip> enemiesWithSetStrategies = new List<EnemyShip>();
-        private Vector[] formationPositions = new Vector[4]
-        { new Vector(50, 50), new Vector (50, 100), new Vector(50, 150), new Vector (50, 200) };
+        private Vector[] formationPositions = new Vector[4] { new Vector(50, 50), new Vector(50, 100), new Vector(50, 150), new Vector(50, 200) };
         private int[] formationDistance = new int[4];
 
         public ILevelBuilder SetDescription(string description)
@@ -142,18 +141,17 @@ namespace Lost_boy
 
         private void SetDropForLevel(Tier tier, Difficulty diff)
         {
-            switch (tier)
+            Dictionary<IBonus, int> set = new Dictionary<IBonus, int>();
+            foreach (var pair in Getters.GetDrop(tier))
             {
-                case Tier.T1:
-                    lvl.SetDroppables(Getters.T1GetDrop(), diff);
-                    break;
-                case Tier.T2:
-                    lvl.SetDroppables(Getters.T2GetDrop(), diff);
-                    break;
-                case Tier.T3:
-                    lvl.SetDroppables(Getters.T3GetDrop(), diff);
-                    break;
+                set.Add(pair.Key, pair.Value * (int)diff);
             }
+            foreach (var pair in Getters.GetScrapDrop(tier))
+            {
+                set.Add(pair.Key, pair.Value * (int)diff);
+            }
+            set.Add(new GoldCoin(new Vector(), tier, diff), 33 * (int)diff);
+            lvl.SetDroppables(set);
         }
 
         private List<KeyValuePair<Vector, List<KeyValuePair<Vector, int>>>> ReadRoad(IEnumerable<string> txt)
@@ -231,7 +229,7 @@ namespace Lost_boy
             lvl = new ClassicLevel("classic");
         }
 
-        public ILevel Build()
+        public IPlayAble Build()
         {
             return lvl;
         }
@@ -241,22 +239,15 @@ namespace Lost_boy
         public class MeteorLevelBuilder : ILevelBuilder
         {
             private MeteorLevel level = new MeteorLevel();
-            private Difficulty difficulty;
 
             private void SetDropForLevel(Tier tier, Difficulty diff)
             {
-                switch (tier)
+                Dictionary<IBonus, int> set = new Dictionary<IBonus, int>();
+                foreach (var pair in Getters.GetDrop(tier))
                 {
-                    case Tier.T1:
-                        level.SetDroppables(Getters.T1GetDrop(), diff);
-                        break;
-                    case Tier.T2:
-                        level.SetDroppables(Getters.T2GetDrop(), diff);
-                        break;
-                    case Tier.T3:
-                        level.SetDroppables(Getters.T3GetDrop(), diff);
-                        break;
+                    set.Add(pair.Key, pair.Value * (int)diff);
                 }
+                level.SetDroppables(set);
             }
 
             public ILevelBuilder SetDescription(string description)
@@ -284,10 +275,148 @@ namespace Lost_boy
                 return this;
             }
 
-            public ILevel Build()
+            public IPlayAble Build()
             {
                 return level;
             }
+        }
+    }
+
+    public class GroceryLevelBuilder : ILevelBuilder
+    {
+        private Action<bool> finisher;
+        private EquipmentView playersView;
+        private EquipmentView shopsView;
+
+        private class ShopItems : IHolder
+        {
+            public List<IEquipable> Backpack
+            {
+                get;
+                set;
+            }
+
+            public Dictionary<IItem, int> Scraps
+            {
+                get;
+                set;
+            }
+
+            public int Gold
+            {
+                get;
+                set;
+            }
+
+            public ShopItems()
+            {
+                Scraps = new Dictionary<IItem, int>();
+                Backpack = new List<IEquipable>();
+            }
+        }
+
+        public ILevelBuilder SetDescription(string description)
+        {
+            return this;
+        }
+
+        public ILevelBuilder SetPlayer(PlayerShip ship)
+        {
+            playersView = new EquipmentView();
+            playersView.SetForAllItems(ship, 50);
+            return this;
+        }
+
+        private void AddBonuses(ShopItems items, List<Bonus> bonuses)
+        {
+            for (int i = 0; i < 3; ++i)
+                items.Scraps.Add((Bonus)bonuses[VALUES.random.Next(0, bonuses.Count)].Clone(new Vector()), 3);
+        }
+
+        private void AddScraps(ShopItems items, Tier tier)
+        {
+            int[] times = null;
+            switch (tier)
+            {
+                case Tier.T1:
+                    times = new int[] { 20, 10, 3, 1 };
+                    break;
+                case Tier.T2:
+                    times = new int[] { 10, 10, 5, 3 };
+                    break;
+                case Tier.T3:
+                    times = new int[] { 5, 10, 15, 7 };
+                    break;
+            }
+            items.Scraps.Add(new Scrap(ScrapType.Carbon), times[0]);
+            items.Scraps.Add(new Scrap(ScrapType.Steel), times[1]);
+            items.Scraps.Add(new Scrap(ScrapType.Uranium), times[2]);
+            items.Scraps.Add(new Scrap(ScrapType.Plutonium), times[3]);
+        }
+
+        private IEquipable GetAmmo(Tier tier)
+        {
+            int choice = VALUES.random.Next(4);
+            switch (tier)
+            {
+                case Tier.T1:
+                    switch (choice)
+                    {
+                        case 0: return new BulletFactory.T1.PlasmaFactory(Direction.Up);
+                        case 1: return new BulletFactory.T1.FrostyLaserFactory(Direction.Up);
+                        case 2: return new BulletFactory.T1.ExplosiveBulletFactory(Direction.Up);
+                        case 3: return new BulletFactory.T1.BeamFactory(Direction.Up);
+                    }
+                    break;
+                case Tier.T2:
+                    switch (choice)
+                    {
+                        case 0: return new BulletFactory.T2.HellHotFactory(Direction.Up);
+                        case 1: return new BulletFactory.T2.MortalCoilFactory(Direction.Up);
+                        case 2: return new BulletFactory.T2.NapalmFactory(Direction.Up);
+                        case 3: return new BulletFactory.T2.StarPlasmaFactory(Direction.Up);
+                    }
+                    break;
+                case Tier.T3:
+                    switch (choice)
+                    {
+                        case 0: return new BulletFactory.T3.AnnihilatorFactory(Direction.Up);
+                        case 1: return new BulletFactory.T3.ArmaggedonFactory(Direction.Up);
+                        case 2: return new BulletFactory.T3.DecimatorFactory(Direction.Up);
+                        case 3: return new BulletFactory.T3.DisintegratorFactory(Direction.Up);
+                    }
+                    break;
+            }
+            return null;
+        }
+
+        private ShopItems GetRandomStuff(Tier tier)
+        {
+            ShopItems items = new ShopItems();
+            AddBonuses(items, Getters.GetDrop(tier).Keys.ToList());
+            AddScraps(items, tier);
+            items.Backpack.Add(GetAmmo(tier));
+            return items;
+        }
+
+        public ILevelBuilder SetContent(Setup.LevelInfoHolder info)
+        {
+            shopsView = new EquipmentView();
+            shopsView.SetForAllItems(GetRandomStuff(info.tier), VALUES.WIDTH / 2);
+            return this;
+        }
+
+        public ILevelBuilder SetFinishedAction(Action<bool> action)
+        {
+            finisher = action;
+            return this;
+        }
+
+        public IPlayAble Build()
+        {
+            Grocery shop = new Grocery(playersView, shopsView);
+            shop.Finished += finisher;
+            return shop;
         }
     }
 }

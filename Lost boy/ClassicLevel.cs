@@ -100,19 +100,20 @@ namespace Lost_boy
             }
         }
 
-        public void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff)
+        public void SetDroppables(Dictionary<IBonus, int> set)
         {
             foreach (var enemy in Enemies)
             {
                 foreach (var bonus in set)
                 {
-                    if (bonus.Value * (int)diff > VALUES.random.Next(100))
+                    if (bonus.Value > VALUES.random.Next(100))
                     {
                         enemy.onDeath += () =>
                         {
                             var newBonus = bonus.Key.Clone(enemy.Position
                             + new Vector(VALUES.random.Next(-10, 10),
                                         VALUES.random.Next(-10, 10)));
+                            newBonus.onDeath += newBonus.Recycle;
                             EnemyBulletAdder(newBonus);
                         };
                     }
@@ -143,7 +144,7 @@ namespace Lost_boy
             foreach (var bullet in playersProjectiles)
             {
                 bullet.Move();
-                if (bullet.Position.Y + bullet.Size.Y < 0)
+                if (bullet.Position.Y < -50)
                 {
                     bullet.Recycle();
                 }
@@ -201,11 +202,6 @@ namespace Lost_boy
                 Finished(true);
         }
 
-        public void PrepareNextStage()
-        {
-
-        }
-
         public void Elapse()
         {
             HandleEnemies_elapse();
@@ -238,16 +234,10 @@ namespace Lost_boy
             SetEnemies();
             Player.Weapon.BulletAdder = PlayerBulletAdder;
             Player.Weapon.RecycledBulletAdder = PlayerRecycledBulletAdder;
-            if (Player.Weapon.Ammo is IExplosiveFactory)
-            {
-                (Player.Weapon.Ammo as IExplosiveFactory).BulletAdder = PlayerBulletAdder;
-            }
             new Thread(() =>
             {
                 Thread.Sleep(20000);
                 DefaultStrategyForEnemies();
-                Thread.Sleep(20000);
-                RandomEnemyFalldown();
             }).Start();
         }
 
@@ -294,15 +284,6 @@ namespace Lost_boy
                 e.Weapon.BulletAdder = EnemyBulletAdder;
                 e.Weapon.RecycledBulletAdder = EnemyRecycledBulletAdder;
                 e.onDeath += () => toRemoveEnemies.Add(e);
-                e.onDeath += () =>
-                {
-                    if (VALUES.GOLD_DROP_CHANCE > VALUES.random.Next(100))
-                    {
-                        var bonus = new GoldCoin(e.Position, VALUES.GOLD_AVERAGE_VALUE);
-                        bonus.onDeath += bonus.Recycle;
-                        EnemyBulletAdder(bonus);
-                    }
-                };
             }
         }
 

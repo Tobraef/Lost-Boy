@@ -8,17 +8,25 @@ using Lost_boy.OnShots;
 
 namespace Lost_boy.Weapon
 {
-    public abstract class Weapon : IWeapon, IItem
+    public abstract class Weapon : IWeapon, IEquipable
     {
         private event OnShot onShot;
         protected List<IProjectile> recycledShots = new List<IProjectile>();
-        public virtual Action<IBullet> BulletAdder
+        private Action<IProjectile> bulletAdder;
+
+
+        public Action<IProjectile> BulletAdder
         {
-            protected get;
-            set;
+            protected get { return bulletAdder; }
+            set
+            {
+                if (Ammo is IExplosiveFactory)
+                    ((IExplosiveFactory)Ammo).BulletAdder = value;
+                bulletAdder = value;
+            }
         }
 
-        public virtual Action<IBullet> RecycledBulletAdder
+        public Action<IProjectile> RecycledBulletAdder
         {
             protected get;
             set;
@@ -65,7 +73,7 @@ namespace Lost_boy.Weapon
 
         protected void ImbueBullet(IBullet bullet)
         {
-            if (onShot != null)
+            if (onShot != null) 
                 onShot(bullet);
             bullet.OnRecycle += RecyclingMethod;
             bullet.onDeath += bullet.Recycle;
@@ -93,20 +101,28 @@ namespace Lost_boy.Weapon
         {
             get
             {
-                return
-                    10 +
-                    onShot.GetInvocationList().Length * 15;
+                int price = 10;
+                if (onShot != null)
+                    price += onShot.GetInvocationList().Length * 15;
+                return price;
             }
         }
 
-        public void Equip(PlayerShip player)
+        public void EquipOn(PlayerShip player)
         {
-            player.Backpack.Add(player.Weapon);
+            Ammo = player.Weapon.Ammo;
+            player.Backpack.Add((IEquipable)player.Weapon);
             player.Weapon = this;
             player.Backpack.Remove(this);
         }
 
-        public void AddToInventory(PlayerShip player)
+        public void SellFrom(IHolder holder)
+        {
+            holder.Backpack.Remove(this);
+            holder.Gold += Price;
+        }
+
+        public void AddToInventory(IHolder player)
         {
             player.Backpack.Add(this);
         }
@@ -123,12 +139,6 @@ namespace Lost_boy.Weapon
     {
         public class SingleWeapon : Weapon
         {
-            public override Action<IBullet> BulletAdder
-            {
-                protected get;
-                set;
-            }
-
             protected override void AddBullets(Vector launchPosition)
             {
                 IBullet bullet;
@@ -148,6 +158,11 @@ namespace Lost_boy.Weapon
                     ImbueBullet(bullet);
                     BulletAdder(bullet);
                 }
+            }
+
+            public override string ToString()
+            {
+                return "Single weapon";
             }
 
             public SingleWeapon(IBulletFactory ammo) :
@@ -157,12 +172,6 @@ namespace Lost_boy.Weapon
 
         public class SprayWeapon : Weapon
         {
-            public override Action<IBullet> BulletAdder
-            {
-                protected get;
-                set;
-            }
-
             protected override void AddBullets(Vector launchPosition)
             {
                 IBullet bullet;
@@ -182,6 +191,11 @@ namespace Lost_boy.Weapon
                     ImbueBullet(bullet);
                     BulletAdder(bullet);
                 }
+            }
+
+            public override string ToString()
+            {
+                return "Spray weapon";
             }
 
             public SprayWeapon(IBulletFactory ammo) :
@@ -200,12 +214,6 @@ namespace Lost_boy.Weapon
     {
         public class DoubleWeapon : Weapon
         {
-            public override Action<IBullet> BulletAdder
-            {
-                protected get;
-                set;
-            }
-
             private void SetBulletsPosition(IBullet leftBullet, IBullet rightBullet, Vector launchPosition)
             {
                 launchPosition.Y += leftBullet.Size.Y * (int)leftBullet.Direction;
@@ -238,6 +246,11 @@ namespace Lost_boy.Weapon
                 }
             }
 
+            public override string ToString()
+            {
+                return "Double weapon";
+            }
+
             public DoubleWeapon(IBulletFactory ammo) :
                 base(ammo)
             {
@@ -251,12 +264,6 @@ namespace Lost_boy.Weapon
     {
         public class TripleWeapon : Weapon
         {
-            public override Action<IBullet> BulletAdder
-            {
-                protected get;
-                set;
-            }
-
             protected override void AddBullets(Vector launchPosition)
             {
                 IBullet leftBullet;
@@ -268,9 +275,12 @@ namespace Lost_boy.Weapon
                     middleBullet = (IBullet)recycledShots[recycledShots.Count - 2];
                     rightBullet = (IBullet)recycledShots[recycledShots.Count - 3];
                     launchPosition.Y += leftBullet.Size.Y * (int)leftBullet.Direction;
-                    foreach (var b in recycledShots.Take(3)) b.Position = launchPosition;
+                    leftBullet.Position = launchPosition; 
+                    middleBullet.Position = launchPosition;
+                    rightBullet.Position = launchPosition;
                     recycledShots.RemoveRange(recycledShots.Count - 3, 3);
                     leftBullet.Speed = new Vector(-5, leftBullet.Speed.Y);
+                    middleBullet.Speed = new Vector(0, middleBullet.Speed.Y);
                     rightBullet.Speed = new Vector(5, rightBullet.Speed.Y);
                     RecycledBulletAdder(leftBullet);
                     RecycledBulletAdder(middleBullet);
@@ -292,6 +302,11 @@ namespace Lost_boy.Weapon
                     BulletAdder(middleBullet);
                     BulletAdder(rightBullet);
                 }
+            }
+
+            public override string ToString()
+            {
+                return "Triple weapon";
             }
 
             public TripleWeapon(IBulletFactory ammo) :

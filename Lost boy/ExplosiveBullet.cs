@@ -108,11 +108,13 @@ namespace Lost_boy.Ammo
 
             private void Explode()
             {
-                BulletAdder(new Explosion(explosionDamage, new Vector(
+                var explosion = new Explosion(explosionDamage, new Vector(
                     this.Position.X - 3 * this.Size.X,
                     this.Position.Y - 3 * this.Size.Y),
                     this.Size.Y * 8,
-                    explosionBurn));
+                    explosionBurn);
+                explosion.onDeath += explosion.Recycle;
+                BulletAdder(explosion);
             }
 
             public override void AffectShip(IShip ship)

@@ -10,7 +10,7 @@ namespace Lost_boy.Meteor
     {
         private MeteorDispenser dispenser = new MeteorDispenser(0);
         private bool waveTime = true;
-        private Dictionary<Bonus, int> droppables = new Dictionary<Bonus, int>();
+        private Dictionary<IBonus, int> droppables = new Dictionary<IBonus, int>();
         private List<IProjectile> projectiles = new List<IProjectile>();
         private List<IProjectile> toRemoveProjectiles = new List<IProjectile>();
 
@@ -33,11 +33,11 @@ namespace Lost_boy.Meteor
             dispenser.SetDifficulty(diff);
         }
 
-        public void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff)
+        public void SetDroppables(Dictionary<IBonus, int> set)
         {
             foreach (var pair in set)
             {
-                droppables.Add(pair.Key, pair.Value * (int)diff);
+                droppables.Add(pair.Key, pair.Value);
             }
         }
 
@@ -85,15 +85,6 @@ namespace Lost_boy.Meteor
 
         private void DropRandomBonuses()
         {
-            int choice = VALUES.random.Next(3);
-            if (choice == 1)
-            {
-                MeteorAdder(new GoldCoin(new Vector(VALUES.random.Next(VALUES.WIDTH), 0), 50));
-            }
-            else if (choice == 2)
-            {
-                MeteorAdder(new HealthBonus(new Vector(VALUES.random.Next(VALUES.WIDTH), 0)));
-            }
             try
             {
                 var drop = droppables
@@ -134,7 +125,7 @@ namespace Lost_boy.Meteor
             }
             if (VALUES.random.Next(100) < 30)
                 dispenser.ShootMeteor();
-            if (VALUES.random.Next(100) < 10)
+            if (VALUES.random.Next(100) < 30)
                 DropRandomBonuses();
         }
 
@@ -157,16 +148,12 @@ namespace Lost_boy.Meteor
             }
         }
 
-        public void PrepareNextStage()
-        {
-            Clean_elapse();
-            AddStuff_elapse();
-            CheckConditions_elapse();
-        }
-
         public void Elapse()
         {
             HandleLogic_elapse();
+            Clean_elapse();
+            AddStuff_elapse();
+            CheckConditions_elapse();
         }
 
         public void Draw(System.Drawing.Graphics g, System.Drawing.Pen p)

@@ -19,26 +19,31 @@ namespace Lost_boy
         public Difficulty Difficulty
         {
             get;
+            private set;
         }
 
         public Tier Tier
         {
             get;
+            private set;
         }
 
         public Color Color
         {
             get;
+            private set;
         }
 
         public Vector MiddlePoint
         {
             get;
+            private set;
         }
 
         public LevelType Type
         {
             get;
+            private set;
         }
 
         public void Draw(Graphics g, Pen p)
@@ -54,7 +59,7 @@ namespace Lost_boy
 
         private Tier TierRandomizer()
         {
-            switch(VALUES.random.Next(3))
+            switch (VALUES.random.Next(3))
             {
                 case 0: return Tier.T1;
                 case 1: return Tier.T2;
@@ -80,6 +85,7 @@ namespace Lost_boy
             {
                 case 1: return LevelType.Meteor;
                 case 2: return LevelType.Event;
+                case 3: return LevelType.Shop;
                 default:
                     return LevelType.Classic;
             }
@@ -136,7 +142,11 @@ namespace Lost_boy
         private KeyValuePair<int, Star> playerStar;
         private const int playerReach = 100;
         private readonly Dictionary<int, Star> starMap = new Dictionary<int, Star>();
-        private static readonly Font font = new Font("Arial", 11);
+        private IPlayAble secondView;
+        private Action<MouseEventArgs> currentMouseHandler;
+        private Action<Graphics, Pen> currentDraw;
+        private string instructions = "C - equipment\nF - Assembly";
+
         private class Label
         {
             public string Text { get; set; }
@@ -147,9 +157,12 @@ namespace Lost_boy
 
         public void Begin()
         {
+            secondView = null;
+            currentDraw = DefaultDraw;
+            currentMouseHandler = DefaultMouseHandler;
         }
 
-        public void Draw(Graphics g, Pen p)
+        private void DefaultDraw(Graphics g, Pen p)
         {
             foreach (var pair in starMap)
             {
@@ -158,22 +171,66 @@ namespace Lost_boy
 
             p.Color = Color.White;
             if (label != null)
-                g.DrawString(label.Text, font, p.Brush, label.X, label.Y);
+                g.DrawString(label.Text, VALUES.FONT, p.Brush, label.X, label.Y);
+            g.DrawString(instructions, VALUES.FONT, p.Brush, 0, 0);
 
             p.Color = Color.Red;
             g.DrawRectangle(p, playerStar.Value.MiddlePoint.X - 20, playerStar.Value.MiddlePoint.Y - 20, 40, 40);
             p.Color = Color.Green;
-            g.DrawEllipse(p, playerStar.Value.MiddlePoint.X - playerReach, playerStar.Value.MiddlePoint.Y - playerReach, playerReach*2, playerReach*2);
+            g.DrawEllipse(p,
+                playerStar.Value.MiddlePoint.X - playerReach,
+                playerStar.Value.MiddlePoint.Y - playerReach,
+                playerReach * 2, playerReach * 2);
+        }
+
+        private void DelegateDraw(Graphics g, Pen p)
+        {
+            secondView.Draw(g, p);
+        }
+
+        public void Draw(Graphics g, Pen p)
+        {
+            currentDraw(g, p);
         }
 
         public void Elapse()
         {
         }
 
+        private void GrantControlToSecondView()
+        {
+            currentMouseHandler = DelegateMouseHandler;
+            currentDraw = DelegateDraw;
+        }
+
+        private void RetrieveControl()
+        {
+            currentMouseHandler = DefaultMouseHandler;
+            currentDraw = DefaultDraw;
+        }
+
+        private void PrepareSecondView()
+        {
+            secondView.Finished += b => { RetrieveControl(); secondView = null; };
+            GrantControlToSecondView();
+            secondView.Begin();
+        }
+
         public void HandlePlayer(char key)
         {
             if (key == ' ' && playerStar.Value.isValid)
                 Finished(true);
+            else if (key == 'c')
+            {
+                secondView = new ChangingRoom();
+                PrepareSecondView();
+                
+            }
+            else if (key == 'f')
+            {
+                secondView = new AssemblyRoom();
+                PrepareSecondView();
+            }
         }
 
         public void HandlePlayer_KeyUp(char key)
@@ -213,7 +270,7 @@ namespace Lost_boy
                     Text = !pressed.isValid ?
                            "Empty" :
                            "Difficulty: " + pressed.Difficulty +
-                           "\nTier: " + pressed.Tier + 
+                           "\nTier: " + pressed.Tier +
                            "\nType: " + pressed.Type,
                     X = pressed.MiddlePoint.X,
                     Y = pressed.MiddlePoint.Y + 10
@@ -222,7 +279,7 @@ namespace Lost_boy
             catch (Exception e) { label = null; }
         }
 
-        public void HandlePlayer_Mouse(MouseEventArgs m)
+        private void DefaultMouseHandler(MouseEventArgs m)
         {
             switch (m.Button)
             {
@@ -235,7 +292,16 @@ namespace Lost_boy
                 case MouseButtons.Middle:
                     break;
             }
-            
+        }
+
+        private void DelegateMouseHandler(MouseEventArgs m)
+        {
+            secondView.HandlePlayer_Mouse(m);
+        }
+
+        public void HandlePlayer_Mouse(MouseEventArgs m)
+        {
+            currentMouseHandler(m);
         }
 
         private static bool IsReachable(List<Star> stars, Vector starPosition)
@@ -287,7 +353,7 @@ namespace Lost_boy
 
         private Color ParseColor(string color)
         {
-            switch(color)
+            switch (color)
             {
                 case "[Blue]": return Color.Blue;
                 case "[Green]": return Color.Green;
@@ -332,8 +398,9 @@ namespace Lost_boy
                 case "Classic": return LevelType.Classic;
                 case "Event": return LevelType.Event;
                 case "Meteor": return LevelType.Meteor;
+                case "Shop": return LevelType.Shop;
             }
-            return LevelType.Classic;
+            throw new NotImplementedException("StarMap - Parse level type error");
         }
 
         public StarMap(int playerPosition, string file, List<int> emptied, Action<Setup.LevelInfoHolder> finisher)
@@ -366,6 +433,8 @@ namespace Lost_boy
                 }
             }
             playerStar = new KeyValuePair<int, Star>(playerPosition, starMap[playerPosition]);
+            currentDraw = DefaultDraw;
+            currentMouseHandler = DefaultMouseHandler;
         }
     }
 }

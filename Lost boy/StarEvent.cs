@@ -10,60 +10,110 @@ namespace Lost_boy.Event
     public class Event : IEvent
     {
         private string description;
-        private Dictionary<TextBox, IEventOption> options =
-            new Dictionary<TextBox, IEventOption>();
+        private Dictionary<TextBox, EventOption> options =
+            new Dictionary<TextBox, EventOption>();
+
+        public Action<IEvent> NextStage
+        {
+            get;
+            set;
+        }
 
         public void HandleChoice(Vector where)
         {
-            IEventOption selected = null;
+            EventOption selected = null;
             foreach (var pair in options)
             {
                 var frame = pair.Key;
-                if (frame.Position.X > where.X && frame.Position.X + frame.Size.Width < where.X &&
-                    frame.Position.Y > where.Y && frame.Position.Y + frame.Size.Height < where.Y)
+                if (frame.IsPressed(where))
                 {
                     selected = pair.Value;
                     break;
                 }
             }
-            if (selected != null)
+            NextStage(selected.Trigger());
+        }
+
+        public void Draw(Graphics g, Pen p)
+        {
+            p.Color = Color.White;
+            foreach (var box in options.Keys)
             {
-                Transition(selected.Trigger());
+                box.Draw(g,p);
             }
         }
 
-        private void PopulateOptions(Dictionary<string, IEventOption> options)
+        public Event(string description, Dictionary<TextBox, EventOption> options, PlayerShip player)
         {
-            int i = 0;
-            foreach (var option in options)
-            {
-                Vector w = new Vector(50, 200 + 50 * i);
-                this.options.Add(new TextBox(w, option.Key), option.Value);
-                ++i;
-            }
+            this.description = description;
+            this.options = options;
+        }
+    }
+
+    public class FinishEvent : IEvent
+    {
+        private string description;
+
+        public Action<IEvent> NextStage
+        {
+            get;
+            set;
         }
 
-        private void Transition(EventInfo nextStage)
+        public void HandleChoice(Vector where)
         {
-            this.description = nextStage.description;
-            this.options.Clear();
-            PopulateOptions(nextStage.options);
+            NextStage(null);
         }
 
         public void Draw(Graphics g, Pen p)
         {
             p.Color = Color.White;
             g.DrawString(description, VALUES.FONT, p.Brush, 50, 50);
-            foreach (var box in options.Keys)
-            {
-                box.Draw(g, p);
-            }
         }
 
-        public Event(string description, Dictionary<string, IEventOption> opts)
+        public FinishEvent(string description)
         {
-            this.description = description;
-            PopulateOptions(opts);
+            this.description = description + "\nClick anywhere to continue";
+        }
+    }
+
+    interface IEventOption
+    {
+        IEvent Trigger();
+    }
+
+    public class EventOption : IEventOption
+    {
+        private Func<IEvent> eventTrigger;
+
+        public IEvent Trigger()
+        {
+            return eventTrigger();
+        }
+
+        public EventOption(Func<IEvent> trigger)
+        {
+            eventTrigger = trigger;
+        }
+    }
+
+    public class SplitEventOption : IEventOption
+    {
+        private Func<IEvent> succes;
+        private Func<IEvent> fail;
+
+        public IEvent Trigger()
+        {
+            if (VALUES.random.Next(100) > 50)
+                return succes();
+            else
+                return fail();
+        }
+
+        public SplitEventOption(Func<IEvent> OnSucces, Func<IEvent> OnFail)
+        {
+            succes = OnSucces;
+            fail = OnFail;
         }
     }
 
@@ -93,82 +143,18 @@ namespace Lost_boy.Event
             g.DrawRectangle(p, bounds);
         }
 
+        public bool IsPressed(Vector where)
+        {
+            return Position.X < where.X && Position.X + Size.Width > where.X &&
+                   Position.Y < where.Y && Position.Y + Size.Height > where.Y;
+        }
+
         public TextBox(Vector where, string txt)
         {
             Text = txt;
-            bounds = new Rectangle(where, new Size(txt.Length * 5, 50));
+            bounds = new Rectangle(where, new Size(txt.Length * 12, 30));
         }
     }
 
-    public class SingleEventOption : IEventOption
-    {
-        private Func<EventInfo> eventTrigger;
-
-        public EventInfo Trigger()
-        {
-            return eventTrigger();
-        }
-
-        public SingleEventOption(Func<EventInfo> trigger)
-        {
-            eventTrigger = trigger;
-        }
-    }
-
-    public class SplitEventOption : IEventOption
-    {
-        private Func<EventInfo> succes;
-        private Func<EventInfo> fail;
-        private int chance;
-
-        public EventInfo Trigger()
-        {
-            if (VALUES.random.Next(100) < chance)
-                return succes();
-            else
-                return fail();
-        }
-
-        public SplitEventOption(Func<EventInfo> OnSucces, Func<EventInfo> OnFail, int chanceSucces)
-        {
-            chance = chanceSucces;
-            succes = OnSucces;
-            fail = OnFail;
-        }
-    }
-
-    namespace EventOptions
-    {
-        public class AffectPlayerOption : SplitEventOption
-        {
-            public AffectPlayerOption(EventInfo nextSuces, EventInfo nextFail,
-                int chanceSucces,
-                Action<PlayerShip> succes, Action<PlayerShip> fail) :
-                base(
-                    () =>
-                    {
-                        succes(Form1.player);
-                        return nextSuces;
-                    },
-                    () =>
-                    {
-                        fail(Form1.player);
-                        return nextFail;
-                    }, chanceSucces)
-            { }
-        }
-
-        public class FinishOption : SingleEventOption
-        {
-            public FinishOption(Action finisher) :
-                base(() => { finisher(); return null; })
-            { }
-        }
-    }
-
-    public class EventInfo
-    {
-        public string description;
-        public Dictionary<string, IEventOption> options;
-    }
 }
+
