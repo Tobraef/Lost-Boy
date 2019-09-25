@@ -8,20 +8,26 @@ using System.Windows.Forms;
 
 /*TODOS
  * NEW FEATURES
+ * implement shop
+ * implement star map
  * implement boss
  * implement enemy that appears randomly, drops lots of stuff, disappears after specified time
  * implement graphics
+ * implement new level types
+ * implement new ammo types
  * implement events
  * 
  * REFACTOR
  * falling strategy -> infinite timer
+ * writing to file -> increment last lvl id, not start over from 1 (done, needs testing)
  * recycling meteors
+ * Getters from eventbuilder to Getters class
  * 
  * MAYBE
+ * lvls with tiers
  * clear interfaces, not to expose unnecessary stuff
  * implement secondary weapon
  * synchronous draw with logic
- * new level types / weapons / ammo - basically always open for new ideas
 */
 
 namespace Lost_boy
@@ -44,8 +50,7 @@ namespace Lost_boy
             Casual,
             Frosty,
             Rocky,
-            Tricky,
-            Stealthy
+            Tricky
         }
     }
 
@@ -74,8 +79,14 @@ namespace Lost_boy
     {
         Classic,
         Meteor,
-        Event,
-        Shop
+        Event
+    }
+
+    public enum LevelEnding
+    {
+        GoToStarMap,
+        ForceClassicLevel,
+
     }
 
     public static class VALUES
@@ -104,8 +115,8 @@ namespace Lost_boy
 
         public const int BASIC_WEAPON_RELOAD_TIME = 300;
 
-        public const int BASIC_LASER_RECHARGE = 200;
-        public const int BASIC_LASER_DMG = 15;
+        public const int BASIC_LASER_RECHARGE = 350;
+        public const int BASIC_LASER_DMG = 10;
         public const int BASIC_LASER_SPEED = 20;
         public const int BASIC_LASER_BURN_DMG = 5;
         public const int BASIC_LASER_BURN_TICKS = 3;
@@ -126,7 +137,8 @@ namespace Lost_boy
         public const int METEOR_AVG_DMG = 25;
         public const int METEOR_AVG_SPEED = 20;
 
-        public const int MAX_LVL_ID = 3;
+        public const int MAX_CLASSIC_LVL_ID = 3;
+        public const int MAX_EVENT_LVL_ID = 1;
     }
 
     public interface IMover
@@ -176,40 +188,11 @@ namespace Lost_boy
         void Recycle();
     }
 
-    public interface IBonus : IProjectile
-    {
-        IBonus Clone(Vector newOne);
-    }
-
     public interface IItem
     {
         int Price { get; }
-        void AddToInventory(IHolder player);
-        void SellFrom(IHolder holder);
-    }
-    
-    public interface IEquipable : IItem
-    {
-        void EquipOn(PlayerShip player);
-    }
-
-    public interface IHolder
-    {
-        List<IEquipable> Backpack
-        {
-            get;
-        }
-
-        Dictionary<IItem, int> Scraps
-        {
-            get;
-        }
-
-        int Gold
-        {
-            get;
-            set;
-        }
+        void AddToInventory(PlayerShip player);
+        void Equip(PlayerShip player);
     }
 
     public interface IBullet : IProjectile
@@ -249,11 +232,11 @@ namespace Lost_boy
     public interface IWeapon : IItem
     {
         void Cleanup();
-        Action<IProjectile> BulletAdder
+        Action<IBullet> BulletAdder
         {
             set;
         }
-        Action<IProjectile> RecycledBulletAdder
+        Action<IBullet> RecycledBulletAdder
         {
             set;
         }
@@ -320,6 +303,36 @@ namespace Lost_boy
         void StopStrategy(IShip m);
     }
 
+    public interface IShopItem
+    {
+        int Price
+        {
+            get;
+            set;
+        }
+        int X
+        {
+            get;
+            set;
+        }
+        int Y
+        {
+            get;
+            set;
+        }
+        Vector Size
+        {
+            get;
+            set;
+        }
+        bool IsSelected(Vector mouse);
+        string Description
+        {
+            get;
+            set;
+        }
+    }
+
     public interface IPlayAble
     {
         event Action<bool> Finished;
@@ -343,7 +356,7 @@ namespace Lost_boy
             get;
         }
         void AdjustToDifficulty(Difficulty diff);
-        void SetDroppables(Dictionary<IBonus, int> set);
+        void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff);
     }
 
     public interface ILevelBuilder
@@ -355,14 +368,17 @@ namespace Lost_boy
         IPlayAble Build();
     }
 
+    public interface IEventOption
+    {
+        int Trigger();
+    }
+
     public interface IEvent
     {
-        Action<IEvent> NextStage
-        {
-            get;
-            set;
-        }
+        event Action<int> TransitPopped;
         void HandleChoice(Vector where);
         void Draw(Graphics g, Pen p);
+
+        void TriggerAction();
     }
 }

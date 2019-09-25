@@ -10,18 +10,15 @@ namespace Lost_boy.Event
     public class Event : IEvent
     {
         private string description;
-        private Dictionary<TextBox, EventOption> options =
-            new Dictionary<TextBox, EventOption>();
+        private Dictionary<TextBox, IEventOption> options =
+            new Dictionary<TextBox, IEventOption>();
+        private Action popCall;
 
-        public Action<IEvent> NextStage
-        {
-            get;
-            set;
-        }
+        public event Action<int> TransitPopped;
 
         public void HandleChoice(Vector where)
         {
-            EventOption selected = null;
+            IEventOption selected = null;
             foreach (var pair in options)
             {
                 var frame = pair.Key;
@@ -31,89 +28,124 @@ namespace Lost_boy.Event
                     break;
                 }
             }
-            NextStage(selected.Trigger());
-        }
-
-        public void Draw(Graphics g, Pen p)
-        {
-            p.Color = Color.White;
-            foreach (var box in options.Keys)
+            if (selected != null)
             {
-                box.Draw(g,p);
+                int nextEvent = selected.Trigger();
+                TransitPopped(nextEvent);
             }
         }
 
-        public Event(string description, Dictionary<TextBox, EventOption> options, PlayerShip player)
+        private void PopulateOptions(Dictionary<string, IEventOption> options)
         {
-            this.description = description;
-            this.options = options;
-        }
-    }
-
-    public class FinishEvent : IEvent
-    {
-        private string description;
-
-        public Action<IEvent> NextStage
-        {
-            get;
-            set;
+            int i = 0;
+            foreach (var option in options)
+            {
+                Vector w = new Vector(50, 200 + 50 * i);
+                this.options.Add(new TextBox(w, option.Key), option.Value);
+                ++i;
+            }
         }
 
-        public void HandleChoice(Vector where)
+        public void TriggerAction()
         {
-            NextStage(null);
+            popCall();
         }
 
         public void Draw(Graphics g, Pen p)
         {
             p.Color = Color.White;
             g.DrawString(description, VALUES.FONT, p.Brush, 50, 50);
+            foreach (var box in options.Keys)
+            {
+                box.Draw(g, p);
+            }
         }
 
-        public FinishEvent(string description)
+        public Event(string description, Dictionary<string, IEventOption> opts, Action trigger)
         {
-            this.description = description + "\nClick anywhere to continue";
-        }
-    }
-
-    interface IEventOption
-    {
-        IEvent Trigger();
-    }
-
-    public class EventOption : IEventOption
-    {
-        private Func<IEvent> eventTrigger;
-
-        public IEvent Trigger()
-        {
-            return eventTrigger();
-        }
-
-        public EventOption(Func<IEvent> trigger)
-        {
-            eventTrigger = trigger;
+            this.popCall = trigger;
+            this.description = description;
+            PopulateOptions(opts);
         }
     }
 
-    public class SplitEventOption : IEventOption
+    public class NoActionEvent : IEvent
     {
-        private Func<IEvent> succes;
-        private Func<IEvent> fail;
+        private string description;
+        private Dictionary<TextBox, IEventOption> options =
+            new Dictionary<TextBox, IEventOption>();
 
-        public IEvent Trigger()
+        public event Action<int> TransitPopped;
+
+        public void HandleChoice(Vector where)
         {
-            if (VALUES.random.Next(100) > 50)
-                return succes();
-            else
-                return fail();
+            IEventOption selected = null;
+            foreach (var pair in options)
+            {
+                var frame = pair.Key;
+                if (frame.IsPressed(where))
+                {
+                    selected = pair.Value;
+                    break;
+                }
+            }
+            if (selected != null)
+            {
+                int nextEvent = selected.Trigger();
+                TransitPopped(nextEvent);
+            }
         }
 
-        public SplitEventOption(Func<IEvent> OnSucces, Func<IEvent> OnFail)
+        private void PopulateOptions(Dictionary<string, IEventOption> options)
         {
-            succes = OnSucces;
-            fail = OnFail;
+            int i = 0;
+            foreach (var option in options)
+            {
+                Vector w = new Vector(50, 200 + 50 * i);
+                this.options.Add(new TextBox(w, option.Key), option.Value);
+                ++i;
+            }
+        }
+
+        public void TriggerAction()
+        {}
+
+        public void Draw(Graphics g, Pen p)
+        {
+            p.Color = Color.White;
+            g.DrawString(description, VALUES.FONT, p.Brush, 50, 50);
+            foreach (var box in options.Keys)
+            {
+                box.Draw(g, p);
+            }
+        }
+
+        public NoActionEvent(string description, Dictionary<string, IEventOption> opts)
+        {
+            this.description = description;
+            PopulateOptions(opts);
+        }
+    }
+
+    public class FinishEvent : IEvent
+    {
+        public event Action<int> TransitPopped;
+        private Action finish;
+
+        public void Draw(Graphics g, Pen p)
+        {}
+
+        public void HandleChoice(Vector where)
+        {}
+
+        public void TriggerAction()
+        {
+            finish();
+        }
+
+        public FinishEvent(Action finisher)
+        {
+            finish = finisher;
         }
     }
 
@@ -156,5 +188,40 @@ namespace Lost_boy.Event
         }
     }
 
-}
+    public class SingleEventOption : IEventOption
+    {
+        private int next;
 
+        public int Trigger()
+        {
+            return next;
+        }
+
+        public SingleEventOption(int followUp)
+        {
+            next = followUp;
+        }
+    }
+
+    public class SplitEventOption : IEventOption
+    {
+        private int succes;
+        private int fail;
+        private int chance;
+
+        public int Trigger()
+        {
+            if (VALUES.random.Next(100) < chance)
+                return succes;
+            else
+                return fail;
+        }
+
+        public SplitEventOption(int succesTransit, int failTransit, int chanceSucces)
+        {
+            chance = chanceSucces;
+            this.succes = succesTransit;
+            this.fail = failTransit;
+        }
+    }
+}

@@ -128,7 +128,7 @@ namespace Lost_boy
             {
                 roadSetup.CloseRoad();
             }
-            
+
             private List<string> ConvertEnemies(List<List<string>> list)
             {
                 List<string> toRet = new List<string>();
@@ -239,26 +239,34 @@ namespace Lost_boy
                     case "Meteor":
                         return LevelType.Meteor;
                     case "Event":
-                        return LevelType.Classic;
-                    case "Shop":
-                        return LevelType.Shop;
+                        return LevelType.Event;
                 }
                 throw new NotImplementedException("No such level type as " + s);
             }
 
-            public static LevelInfoHolder ReadLevel(string fileName, int levelId)
+            public static LevelInfoHolder ReadLevel(string fileName, LevelType type)
             {
                 var lines = File.ReadLines(fileName);
                 var iter = lines.GetEnumerator();
-                string id = levelId.ToString();
+                string toFind = type.ToString();
+                int idToFind = 0;
+                switch(type)
+                {
+                    case LevelType.Classic: idToFind = VALUES.random.Next(1, VALUES.MAX_CLASSIC_LVL_ID);
+                        break;
+                    case LevelType.Event: idToFind = VALUES.random.Next(1, VALUES.MAX_EVENT_LVL_ID);
+                        break;
+                }
 
                 LevelInfoHolder lvl = new LevelInfoHolder
                 {
-                    id = ++levelId,
+                    id = idToFind,
                     data = new List<string>()
                 };
                 var begin = lines
-                    .SkipWhile(line => !(line.Contains("===") && line.Contains(id)))
+                    .SkipWhile(line => !(line.Contains("===") && 
+                               line.Contains(idToFind.ToString()) &&
+                               line.Contains(type.ToString())))
                     .ToList();
                 lvl.type = ParseLevelType(begin.First().Split(' ').Last());
                 lvl.data = begin
