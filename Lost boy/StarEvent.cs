@@ -9,6 +9,7 @@ namespace Lost_boy.Event
 {
     public class Event : IEvent
     {
+        private Rectangle descriptionRectangle;
         private string description;
         private Dictionary<TextBox, IEventOption> options =
             new Dictionary<TextBox, IEventOption>();
@@ -54,7 +55,7 @@ namespace Lost_boy.Event
         public void Draw(Graphics g, Pen p)
         {
             p.Color = Color.White;
-            g.DrawString(description, VALUES.FONT, p.Brush, 50, 50);
+            g.DrawString(description, VALUES.FONT, p.Brush, descriptionRectangle);
             foreach (var box in options.Keys)
             {
                 box.Draw(g, p);
@@ -65,12 +66,14 @@ namespace Lost_boy.Event
         {
             this.popCall = trigger;
             this.description = description;
+            this.descriptionRectangle = new Rectangle(new Point(50, 50), new Size(VALUES.WIDTH - 100, 90));
             PopulateOptions(opts);
         }
     }
 
     public class NoActionEvent : IEvent
     {
+        private Rectangle descriptionRectangle;
         private string description;
         private Dictionary<TextBox, IEventOption> options =
             new Dictionary<TextBox, IEventOption>();
@@ -108,12 +111,12 @@ namespace Lost_boy.Event
         }
 
         public void TriggerAction()
-        {}
+        { }
 
         public void Draw(Graphics g, Pen p)
         {
             p.Color = Color.White;
-            g.DrawString(description, VALUES.FONT, p.Brush, 50, 50);
+            g.DrawString(description, VALUES.FONT, p.Brush, descriptionRectangle);
             foreach (var box in options.Keys)
             {
                 box.Draw(g, p);
@@ -122,6 +125,7 @@ namespace Lost_boy.Event
 
         public NoActionEvent(string description, Dictionary<string, IEventOption> opts)
         {
+            this.descriptionRectangle = new Rectangle(new Point(50, 50), new Size(VALUES.WIDTH - 100, 90));
             this.description = description;
             PopulateOptions(opts);
         }
@@ -133,10 +137,10 @@ namespace Lost_boy.Event
         private Action finish;
 
         public void Draw(Graphics g, Pen p)
-        {}
+        { }
 
         public void HandleChoice(Vector where)
-        {}
+        { }
 
         public void TriggerAction()
         {

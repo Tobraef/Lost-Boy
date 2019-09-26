@@ -57,6 +57,7 @@
     <Compile Include="EnemyShip.cs" />
     <Compile Include="EquipmentView.cs" />
     <Compile Include="EventLevel.cs" />
+    <Compile Include="EventLevelBuilder.cs" />
     <Compile Include="EventResult.cs" />
     <Compile Include="ExplosiveBullet.cs" />
     <Compile Include="Getters.cs" />

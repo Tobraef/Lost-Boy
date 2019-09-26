@@ -8,26 +8,20 @@ using System.Windows.Forms;
 
 /*TODOS
  * NEW FEATURES
- * implement shop
- * implement star map
  * implement boss
  * implement enemy that appears randomly, drops lots of stuff, disappears after specified time
  * implement graphics
- * implement new level types
- * implement new ammo types
  * implement events
  * 
  * REFACTOR
  * falling strategy -> infinite timer
- * writing to file -> increment last lvl id, not start over from 1 (done, needs testing)
  * recycling meteors
- * Getters from eventbuilder to Getters class
  * 
  * MAYBE
- * lvls with tiers
  * clear interfaces, not to expose unnecessary stuff
  * implement secondary weapon
  * synchronous draw with logic
+ * new level types / weapons / ammo - basically always open for new ideas
 */
 
 namespace Lost_boy
@@ -50,7 +44,8 @@ namespace Lost_boy
             Casual,
             Frosty,
             Rocky,
-            Tricky
+            Tricky,
+            Stealthy
         }
     }
 
@@ -79,14 +74,8 @@ namespace Lost_boy
     {
         Classic,
         Meteor,
-        Event
-    }
-
-    public enum LevelEnding
-    {
-        GoToStarMap,
-        ForceClassicLevel,
-
+        Event,
+        Shop
     }
 
     public static class VALUES
@@ -115,8 +104,8 @@ namespace Lost_boy
 
         public const int BASIC_WEAPON_RELOAD_TIME = 300;
 
-        public const int BASIC_LASER_RECHARGE = 350;
-        public const int BASIC_LASER_DMG = 10;
+        public const int BASIC_LASER_RECHARGE = 200;
+        public const int BASIC_LASER_DMG = 15;
         public const int BASIC_LASER_SPEED = 20;
         public const int BASIC_LASER_BURN_DMG = 5;
         public const int BASIC_LASER_BURN_TICKS = 3;
@@ -188,11 +177,40 @@ namespace Lost_boy
         void Recycle();
     }
 
+    public interface IBonus : IProjectile
+    {
+        IBonus Clone(Vector newOne);
+    }
+
     public interface IItem
     {
         int Price { get; }
-        void AddToInventory(PlayerShip player);
-        void Equip(PlayerShip player);
+        void AddToInventory(IHolder player);
+        void SellFrom(IHolder holder);
+    }
+    
+    public interface IEquipable : IItem
+    {
+        void EquipOn(PlayerShip player);
+    }
+
+    public interface IHolder
+    {
+        List<IEquipable> Backpack
+        {
+            get;
+        }
+
+        Dictionary<IItem, int> Scraps
+        {
+            get;
+        }
+
+        int Gold
+        {
+            get;
+            set;
+        }
     }
 
     public interface IBullet : IProjectile
@@ -232,11 +250,11 @@ namespace Lost_boy
     public interface IWeapon : IItem
     {
         void Cleanup();
-        Action<IBullet> BulletAdder
+        Action<IProjectile> BulletAdder
         {
             set;
         }
-        Action<IBullet> RecycledBulletAdder
+        Action<IProjectile> RecycledBulletAdder
         {
             set;
         }
@@ -303,36 +321,6 @@ namespace Lost_boy
         void StopStrategy(IShip m);
     }
 
-    public interface IShopItem
-    {
-        int Price
-        {
-            get;
-            set;
-        }
-        int X
-        {
-            get;
-            set;
-        }
-        int Y
-        {
-            get;
-            set;
-        }
-        Vector Size
-        {
-            get;
-            set;
-        }
-        bool IsSelected(Vector mouse);
-        string Description
-        {
-            get;
-            set;
-        }
-    }
-
     public interface IPlayAble
     {
         event Action<bool> Finished;
@@ -356,7 +344,7 @@ namespace Lost_boy
             get;
         }
         void AdjustToDifficulty(Difficulty diff);
-        void SetDroppables(Dictionary<Bonus, int> set, Difficulty diff);
+        void SetDroppables(Dictionary<IBonus, int> set);
     }
 
     public interface ILevelBuilder
@@ -373,12 +361,11 @@ namespace Lost_boy
         int Trigger();
     }
 
-    public interface IEvent
-    {
+    public interface IEvent	    
+    {	    
         event Action<int> TransitPopped;
         void HandleChoice(Vector where);
         void Draw(Graphics g, Pen p);
-
         void TriggerAction();
-    }
+    }	    
 }

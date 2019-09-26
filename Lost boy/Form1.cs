@@ -178,7 +178,7 @@ namespace Lost_boy
             if (info.type == LevelType.Classic)
             {
                 string pathing = System.IO.Directory.GetCurrentDirectory();
-                var lvlInfo = Setup.LevelReader.ReadLevel(pathing + @"\LevelFile.txt", VALUES.random.Next(1, VALUES.MAX_LVL_ID + 1));
+                var lvlInfo = Setup.LevelReader.ReadLevel(pathing + @"\LevelFile.txt", info.type);
                 lvlInfo.id = info.id;
                 lvlInfo.tier = info.tier;
                 lvlInfo.type = info.type;
@@ -186,12 +186,18 @@ namespace Lost_boy
                 builder = new ClassicLevelBuilder();
                 SetLevel(lvlInfo, builder);
             }
+            else if (info.type == LevelType.Event)
+            {
+                string pathing = System.IO.Directory.GetCurrentDirectory();
+                builder = new Event.EventLevelBuilder();
+                var lvlInfo = Setup.LevelReader.ReadLevel(pathing + @"\LevelFile.txt", info.type);
+                lvlInfo.id = info.id;
+                SetLevel(lvlInfo, builder);
+            }
             else
             {
                 if (info.type == LevelType.Meteor)
                     builder = new Meteor.MeteorLevelBuilder();
-                else if (info.type == LevelType.Event)
-                    ;// builder = new EventLevelBuilder();
                 else if (info.type == LevelType.Shop)
                     builder = new GroceryLevelBuilder();
                 SetLevel(info, builder);

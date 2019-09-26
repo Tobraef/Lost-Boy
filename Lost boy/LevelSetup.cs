@@ -240,6 +240,8 @@ namespace Lost_boy
                         return LevelType.Meteor;
                     case "Event":
                         return LevelType.Event;
+                    case "Shop":
+                        return LevelType.Shop;
                 }
                 throw new NotImplementedException("No such level type as " + s);
             }
@@ -250,7 +252,7 @@ namespace Lost_boy
                 var iter = lines.GetEnumerator();
                 string toFind = type.ToString();
                 int idToFind = 0;
-                switch(type)
+                switch (type)
                 {
                     case LevelType.Classic: idToFind = VALUES.random.Next(1, VALUES.MAX_CLASSIC_LVL_ID);
                         break;
@@ -264,7 +266,7 @@ namespace Lost_boy
                     data = new List<string>()
                 };
                 var begin = lines
-                    .SkipWhile(line => !(line.Contains("===") && 
+                    .SkipWhile(line => !(line.Contains("===") &&
                                line.Contains(idToFind.ToString()) &&
                                line.Contains(type.ToString())))
                     .ToList();
