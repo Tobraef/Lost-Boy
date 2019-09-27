@@ -15,7 +15,7 @@ namespace Lost_boy
         private Color color = Color.Green;
         private HPBar hpBar;
         private List<IEquipable> backpack = new List<IEquipable>();
-        private Dictionary<IItem, int> scraps = new Dictionary<IItem, int> 
+        private Dictionary<IItem, int> scraps = new Dictionary<IItem, int>
         {
             { new Scrap(ScrapType.Carbon), 100 },
             { new Scrap(ScrapType.Steel), 100 },

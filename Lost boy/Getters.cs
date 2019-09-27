@@ -28,7 +28,7 @@ namespace Lost_boy
                     }
                 case Tier.T2:
                     {
-                        
+
                         Dictionary<Scrap, int> drop = new Dictionary<Scrap, int>();
                         drop.Add(new Scrap(ScrapType.Carbon), 60);
                         drop.Add(new Scrap(ScrapType.Steel), 80);
@@ -93,6 +93,55 @@ namespace Lost_boy
                     }
             }
             return null;
+        }
+
+        private static string RandomAmmo()
+        {
+            switch(VALUES.random.Next(4))
+            {
+                case 0: return "Laser";
+                case 1: return "Beam";
+                case 2: return "Explosive";
+                case 3: return "Plasma";
+            }
+            throw new NotImplementedException("No Ammo");
+        }
+
+        public static IItem GetRandomAmmo(Tier tier)
+        {
+            return ParseItem(RandomAmmo() + tier.ToString()[1]);
+        }
+
+        public static IItem ParseItem(string text)
+        {
+            switch (text)
+            {
+                case "SWeapon": return new Weapon.T1.SprayWeapon(null);
+                case "DWeapon": return new Weapon.T2.DoubleWeapon(null);
+                case "TWeapon": return new Weapon.T3.TripleWeapon(null);
+
+                case "Laser1": return new BulletFactory.T1.FrostyLaserFactory(Direction.Up);
+                //case "Laser2": return new BulletFactory.T2.HellHotFactory(Direction.Up);
+                case "Laser2": return new BulletFactory.T2.IcyLaserFactory(Direction.Up);
+                case "Laser3": return new BulletFactory.T3.AnnihilatorFactory(Direction.Up);
+                case "Beam1": return new BulletFactory.T1.BeamFactory(Direction.Up);
+                case "Beam2": return new BulletFactory.T2.MortalCoilFactory(Direction.Up);
+                case "Beam3": return new BulletFactory.T3.DisintegratorFactory(Direction.Up);
+                case "Plasma1": return new BulletFactory.T1.PlasmaFactory(Direction.Up);
+                case "Plasma2": return new BulletFactory.T2.StarPlasmaFactory(Direction.Up);
+                case "Plasma3": return new BulletFactory.T3.DecimatorFactory(Direction.Up);
+                case "Explosive1": return new BulletFactory.T1.ExplosiveBulletFactory(Direction.Up);
+                case "Explosive2": return new BulletFactory.T2.NapalmFactory(Direction.Up);
+                case "Explosive3": return new BulletFactory.T3.ArmaggedonFactory(Direction.Up);
+            }
+            throw new NotImplementedException("Error parsing item name, received " + text);
+        }
+
+        public static List<IItem> ParseLoot(IEnumerable<string> loots)
+        {
+            return loots
+                .Select(name => Getters.ParseItem(name))
+                .ToList();
         }
     }
 }

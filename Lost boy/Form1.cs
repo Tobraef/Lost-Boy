@@ -148,7 +148,7 @@ namespace Lost_boy
         {
             player = new PlayerShip();
             player.Gold = 250;
-            player.Weapon = new Weapon.T2.DoubleWeapon(new BulletFactory.T2.NapalmFactory(Direction.Up));
+            player.Weapon = new Weapon.T2.DoubleWeapon(new BulletFactory.T2.MortalCoilFactory(Direction.Up));
         }
 
         private void PLAY()
@@ -200,6 +200,8 @@ namespace Lost_boy
                     builder = new Meteor.MeteorLevelBuilder();
                 else if (info.type == LevelType.Shop)
                     builder = new GroceryLevelBuilder();
+                else if (info.type == LevelType.Boss)
+                    builder = new BossLevelBuilder();
                 SetLevel(info, builder);
             }
             level.Begin();
@@ -230,7 +232,7 @@ namespace Lost_boy
             }
             InitializePlayer();
             // LoadNextLevel();
-            StarMap.GenerateRandomMap(STAR_MAP_FILE, 100);
+            StarMap.GenerateRandomMap(STAR_MAP_FILE, 150, Tier.T1);
             level = new StarMap(playerStar, STAR_MAP_FILE, new List<int> { }, PrepareNextLevel);
             level.Begin();
             PLAY();

@@ -211,7 +211,7 @@ namespace Lost_boy
             enemiesWithSetStrategies.AddRange(enemies);
             enemies.Clear();
 
-            lvl.Enemies = enemiesWithSetStrategies;
+            enemiesWithSetStrategies.ForEach(s => lvl.AppendEnemy(s));
             SetDropForLevel(info.tier, info.difficulty);
             lvl.AdjustToDifficulty(info.difficulty);
             return this;

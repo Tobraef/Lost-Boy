@@ -29,10 +29,10 @@ namespace Lost_boy
 
 
         public void HandlePlayer(char key)
-        {}
+        { }
 
         public void HandlePlayer_KeyUp(char key)
-        {}
+        { }
 
         public void HandlePlayer_Mouse(System.Windows.Forms.MouseEventArgs m)
         {
@@ -52,7 +52,7 @@ namespace Lost_boy
         }
 
         public void Elapse()
-        {}
+        { }
 
         public void Draw(System.Drawing.Graphics g, System.Drawing.Pen p)
         {
@@ -63,6 +63,6 @@ namespace Lost_boy
         }
 
         public ChangingRoom()
-        {}
+        { }
     }
 }

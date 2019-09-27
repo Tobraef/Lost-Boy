@@ -14,6 +14,10 @@ namespace Lost_boy.Weapon
         protected List<IProjectile> recycledShots = new List<IProjectile>();
         private Action<IProjectile> bulletAdder;
 
+        public void SuckOnShots(IWeapon other)
+        {
+            onShot += ((Weapon)other).onShot;
+        }
 
         public Action<IProjectile> BulletAdder
         {
@@ -73,7 +77,7 @@ namespace Lost_boy.Weapon
 
         protected void ImbueBullet(IBullet bullet)
         {
-            if (onShot != null) 
+            if (onShot != null)
                 onShot(bullet);
             bullet.OnRecycle += RecyclingMethod;
             bullet.onDeath += bullet.Recycle;
@@ -275,7 +279,7 @@ namespace Lost_boy.Weapon
                     middleBullet = (IBullet)recycledShots[recycledShots.Count - 2];
                     rightBullet = (IBullet)recycledShots[recycledShots.Count - 3];
                     launchPosition.Y += leftBullet.Size.Y * (int)leftBullet.Direction;
-                    leftBullet.Position = launchPosition; 
+                    leftBullet.Position = launchPosition;
                     middleBullet.Position = launchPosition;
                     rightBullet.Position = launchPosition;
                     recycledShots.RemoveRange(recycledShots.Count - 3, 3);

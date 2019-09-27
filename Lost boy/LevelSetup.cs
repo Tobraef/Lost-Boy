@@ -254,9 +254,11 @@ namespace Lost_boy
                 int idToFind = 0;
                 switch (type)
                 {
-                    case LevelType.Classic: idToFind = VALUES.random.Next(1, VALUES.MAX_CLASSIC_LVL_ID);
+                    case LevelType.Classic:
+                        idToFind = VALUES.random.Next(1, VALUES.MAX_CLASSIC_LVL_ID);
                         break;
-                    case LevelType.Event: idToFind = VALUES.random.Next(1, VALUES.MAX_EVENT_LVL_ID);
+                    case LevelType.Event:
+                        idToFind = VALUES.random.Next(1, VALUES.MAX_EVENT_LVL_ID);
                         break;
                 }
 

@@ -16,10 +16,10 @@ namespace Lost_boy
         public event Action<bool> Finished;
 
         public void HandlePlayer(char key)
-        {}
+        { }
 
         public void HandlePlayer_KeyUp(char key)
-        {}
+        { }
 
         public void HandlePlayer_Mouse(System.Windows.Forms.MouseEventArgs m)
         {
@@ -29,7 +29,7 @@ namespace Lost_boy
                 .Where(kvp => kvp.Value.CanAssembly(player))
                 .FirstOrDefault();
             if (assembly.Value != null)
-            { 
+            {
                 assembly.Value.Assembly(player);
                 playerView = new EquipmentView();
                 playerView.SetForScrap(player, 400);
@@ -41,7 +41,7 @@ namespace Lost_boy
 
         private void FillWeapons(ref int i)
         {
-            assemblies.Add(new Event.TextBox(new Vector(50, 50 + i*30), "Spray Weapon"),
+            assemblies.Add(new Event.TextBox(new Vector(50, 50 + i * 30), "Spray Weapon"),
                 new ItemAssembly(() => new Weapon.T1.SprayWeapon(player.Weapon.Ammo), new int[] { 50, 30, 10, 0 })); ++i;
             assemblies.Add(new Event.TextBox(new Vector(50, 50 + i * 30), "Double Weapon"),
                 new ItemAssembly(() => new Weapon.T2.DoubleWeapon(player.Weapon.Ammo), new int[] { 50, 70, 30, 5 })); ++i;
@@ -64,7 +64,7 @@ namespace Lost_boy
         }
 
         public void Elapse()
-        {}
+        { }
 
         public void Draw(System.Drawing.Graphics g, System.Drawing.Pen p)
         {
@@ -89,7 +89,7 @@ namespace Lost_boy
 
         public void Assembly(IHolder player)
         {
-            int newC = player.Scraps.First(kvp => 
+            int newC = player.Scraps.First(kvp =>
                 ((Scrap)kvp.Key).Type == ScrapType.Carbon).Value - CarbonScraps;
             int newM = player.Scraps.First(kvp =>
                 ((Scrap)kvp.Key).Type == ScrapType.Steel).Value - MetalScraps;

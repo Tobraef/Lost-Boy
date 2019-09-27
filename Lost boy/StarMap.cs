@@ -86,6 +86,7 @@ namespace Lost_boy
                 case 1: return LevelType.Meteor;
                 case 2: return LevelType.Event;
                 case 3: return LevelType.Shop;
+                case 4: return LevelType.Boss;
                 default:
                     return LevelType.Classic;
             }
@@ -124,6 +125,15 @@ namespace Lost_boy
             isValid = false;
             Color = color;
             MiddlePoint = position;
+        }
+
+        public Star(Vector position, Tier tier)
+        {
+            MiddlePoint = position;
+            Tier = tier;
+            Color = ColorRandomizer();
+            Difficulty = DifficultyRandomizer();
+            Type = TypeRandomizer();
         }
 
         public Star(Vector position)
@@ -224,7 +234,7 @@ namespace Lost_boy
             {
                 secondView = new ChangingRoom();
                 PrepareSecondView();
-                
+
             }
             else if (key == 'f')
             {
@@ -313,7 +323,7 @@ namespace Lost_boy
             }) != null;
         }
 
-        public static void GenerateRandomMap(string fileToSave, int density)
+        public static void GenerateRandomMap(string fileToSave, int density, Tier tier)
         {
             int i = 0;
             List<Star> stars = new List<Star>();
@@ -321,6 +331,15 @@ namespace Lost_boy
             {
                 Vector where = new Vector(VALUES.random.Next(VALUES.WIDTH), VALUES.random.Next(VALUES.HEIGHT));
                 stars.Add(new Star(where));
+            }
+            for (; i < density - 10; ++i)
+            {
+                Vector where = new Vector(VALUES.random.Next(VALUES.WIDTH), VALUES.random.Next(VALUES.HEIGHT));
+                while (!IsReachable(stars, where))
+                {
+                    where = new Vector(VALUES.random.Next(VALUES.WIDTH), VALUES.random.Next(VALUES.HEIGHT));
+                }
+                stars.Add(new Star(where, tier));
             }
             for (; i < density; ++i)
             {
@@ -399,6 +418,7 @@ namespace Lost_boy
                 case "Event": return LevelType.Event;
                 case "Meteor": return LevelType.Meteor;
                 case "Shop": return LevelType.Shop;
+                case "Boss": return LevelType.Boss;
             }
             throw new NotImplementedException("StarMap - Parse level type error");
         }

@@ -96,7 +96,7 @@ namespace Lost_boy
         }
 
         public EquipmentView()
-        { 
+        {
             representations = new Dictionary<Event.TextBox, IItem>();
         }
     }

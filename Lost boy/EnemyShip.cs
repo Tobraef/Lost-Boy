@@ -11,11 +11,9 @@ namespace Lost_boy.Enemies
     {
         private event Modify onDamageTaken;
         private int maxHealth;
-        private Rectangle rectangle;
         private HPBar hpBar;
         private IMovementStrategy strategy;
         public Random shootingRandomizer = new Random(123);
-        protected Color color = Color.Red;
         public event Action onDeath;
 
         public int ShootingChance
@@ -84,17 +82,6 @@ namespace Lost_boy.Enemies
             }
         }
 
-        public override Vector Size
-        {
-            get { return base.Size; }
-            set
-            {
-                base.Size = value;
-                rectangle.Width = value.X;
-                rectangle.Height = value.Y;
-            }
-        }
-
         private Vector ShootingPosition
         {
             get
@@ -132,40 +119,25 @@ namespace Lost_boy.Enemies
 
         public override void Draw(Graphics g, Pen p)
         {
-            p.Color = color;
-            g.DrawRectangle(p, rectangle);
             hpBar.Draw(g, p);
         }
 
         public override void Move()
         {
-            if (MovementStrategy == null || MaxSpeed <= 0)
-                return;
             this.MovementStrategy.ApplyStrategy(this);
             this.hpBar.UpdatePosition(Speed.X, Speed.Y);
             base.Move();
-            rectangle.X = Position.X;
-            rectangle.Y = Position.Y;
         }
 
-        public void Teleport(int x, int y)
+        public virtual void Teleport(int x, int y)
         {
             this.hpBar.UpdatePosition(x - Position.X, y - Position.Y);
             this.Position = new Vector(x, y);
-            rectangle.X = x;
-            rectangle.Y = y;
         }
 
         public abstract void SetDefaultMoveStrategy();
 
-        public bool IsHit(IMover projectile)
-        {
-            return
-                this.Position.X < projectile.Position.X + projectile.Size.X &&
-                this.Position.X + this.Size.X > projectile.Position.X &&
-                this.Position.Y < projectile.Position.Y + projectile.Size.Y &&
-                this.Position.Y + this.Size.Y > projectile.Position.Y;
-        }
+        public abstract bool IsHit(IMover projectile);
 
         public EnemyShip(Vector position) :
             base(position,
@@ -178,7 +150,6 @@ namespace Lost_boy.Enemies
             this.Defence = 0;
             this.onDamageTaken += (ref int val) => val -= Defence;
             this.Weapon = new Weapon.T1.SingleWeapon(new BulletFactory.T1.BasicLaserFactory(Direction.Down));
-            this.rectangle = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
             this.MovementStrategy = new NormalMovementStrategy();
             this.hpBar = new HPBar(this);
             this.onDeath += () =>
@@ -188,7 +159,62 @@ namespace Lost_boy.Enemies
         }
     }
 
-    public class RockyEnemy : EnemyShip
+    public abstract class SimpleShapedEnemy : EnemyShip
+    {
+        private Rectangle rectangle;
+        protected Color color = Color.Red;
+
+        public override bool IsHit(IMover projectile)
+        {
+            return
+                this.Position.X < projectile.Position.X + projectile.Size.X &&
+                this.Position.X + this.Size.X > projectile.Position.X &&
+                this.Position.Y < projectile.Position.Y + projectile.Size.Y &&
+                this.Position.Y + this.Size.Y > projectile.Position.Y;
+        }
+
+        public override Vector Size
+        {
+            get { return base.Size; }
+            set
+            {
+                base.Size = value;
+                rectangle.Width = value.X;
+                rectangle.Height = value.Y;
+            }
+        }
+
+        public override void Move()
+        {
+            if (MovementStrategy == null || MaxSpeed <= 0)
+                return;
+            base.Move();
+            rectangle.X = Position.X;
+            rectangle.Y = Position.Y;
+        }
+
+        public override void Draw(Graphics g, Pen p)
+        {
+            base.Draw(g, p);
+            p.Color = color;
+            g.DrawRectangle(p, rectangle);
+        }
+
+        public override void Teleport(int x, int y)
+        {
+            base.Teleport(x, y);
+            rectangle.X = x;
+            rectangle.Y = y;
+        }
+
+        public SimpleShapedEnemy(Vector where) :
+            base(where)
+        {
+            this.rectangle = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
+        }
+    }
+
+    public class RockyEnemy : SimpleShapedEnemy
     {
         public override void SetDefaultMoveStrategy()
         {
@@ -266,7 +292,7 @@ namespace Lost_boy.Enemies
         }
     }
 
-    public class StealthyEnemy : EnemyShip
+    public class StealthyEnemy : SimpleShapedEnemy
     {
         private Timer timerToBlack;
         private Timer timerToNormal;
@@ -357,7 +383,7 @@ namespace Lost_boy.Enemies
         }
     }
 
-    public class FrostyEnemy : EnemyShip
+    public class FrostyEnemy : SimpleShapedEnemy
     {
         public override void SetDefaultMoveStrategy()
         {
@@ -426,7 +452,7 @@ namespace Lost_boy.Enemies
         }
     }
 
-    public class TrickyEnemy : EnemyShip
+    public class TrickyEnemy : SimpleShapedEnemy
     {
         private Mover playerShipWatcher;
         public override void SetDefaultMoveStrategy()
@@ -505,7 +531,7 @@ namespace Lost_boy.Enemies
         }
     }
 
-    public class CasualEnemy : EnemyShip
+    public class CasualEnemy : SimpleShapedEnemy
     {
         private Func<IMovementStrategy> msReturn;
 

@@ -26,7 +26,7 @@ namespace Lost_boy
 
         public Grocery(EquipmentView playerView, EquipmentView shopView)
         {
-            playerItemsView = playerView; 
+            playerItemsView = playerView;
             shopItemsView = shopView;
             playerGold = new Event.TextBox(new Vector(50, 0), "Gold: " + Form1.player.Gold);
         }
@@ -43,7 +43,7 @@ namespace Lost_boy
         }
 
         public void HandlePlayer_KeyUp(char key)
-        {}
+        { }
 
         private void DefaultMouseHandler(MouseEventArgs m)
         {
@@ -109,7 +109,7 @@ namespace Lost_boy
         }
 
         public void Elapse()
-        {}
+        { }
 
         private void DefaultDraw(Graphics g, Pen p)
         {

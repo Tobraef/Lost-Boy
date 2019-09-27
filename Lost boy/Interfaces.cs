@@ -16,6 +16,7 @@ using System.Windows.Forms;
  * REFACTOR
  * falling strategy -> infinite timer
  * recycling meteors
+ * getters from events
  * 
  * MAYBE
  * clear interfaces, not to expose unnecessary stuff
@@ -65,7 +66,7 @@ namespace Lost_boy
 
     public enum Tier
     {
-        T1,
+        T1 = 1,
         T2,
         T3
     }
@@ -75,7 +76,8 @@ namespace Lost_boy
         Classic,
         Meteor,
         Event,
-        Shop
+        Shop,
+        Boss
     }
 
     public static class VALUES
@@ -249,6 +251,7 @@ namespace Lost_boy
 
     public interface IWeapon : IItem
     {
+        void SuckOnShots(IWeapon other);
         void Cleanup();
         Action<IProjectile> BulletAdder
         {
@@ -343,6 +346,7 @@ namespace Lost_boy
             set;
             get;
         }
+        void AppendEnemy(Enemies.EnemyShip e);
         void AdjustToDifficulty(Difficulty diff);
         void SetDroppables(Dictionary<IBonus, int> set);
     }

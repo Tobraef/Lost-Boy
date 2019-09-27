@@ -39,40 +39,6 @@ namespace Lost_boy.Event
             player.Defence += value;
         }
 
-        private static class Getters
-        {
-            public static IItem ParseItem(string text)
-            {
-                switch (text)
-                {
-                    case "SWeapon": return new Weapon.T1.SprayWeapon(null);
-                    case "DWeapon": return new Weapon.T2.DoubleWeapon(null);
-                    case "TWeapon": return new Weapon.T3.TripleWeapon(null);
-
-                    case "Laser1": return new BulletFactory.T1.FrostyLaserFactory(Direction.Up);
-                    case "Laser2": return new BulletFactory.T2.HellHotFactory(Direction.Up);
-                    case "Laser3": return new BulletFactory.T2.IcyLaserFactory(Direction.Up);
-                    case "Laser4": return new BulletFactory.T3.AnnihilatorFactory(Direction.Up);
-                    case "Beam1": return new BulletFactory.T1.BeamFactory(Direction.Up);
-                    case "Beam2": return new BulletFactory.T2.MortalCoilFactory(Direction.Up);
-                    case "Beam3": return new BulletFactory.T3.DisintegratorFactory(Direction.Up);
-                    case "Plasma1": return new BulletFactory.T1.PlasmaFactory(Direction.Up);
-                    case "Plasma2": return new BulletFactory.T2.StarPlasmaFactory(Direction.Up);
-                    case "Plasma3": return new BulletFactory.T3.DecimatorFactory(Direction.Up);
-                    case "Explosive1": return new BulletFactory.T1.ExplosiveBulletFactory(Direction.Up);
-                    case "Explosive2": return new BulletFactory.T2.NapalmFactory(Direction.Up);
-                    case "Explosive3": return new BulletFactory.T3.ArmaggedonFactory(Direction.Up);
-                }
-                throw new NotImplementedException("Error parsing item name, received " + text);
-            }
-        }
-        private List<IItem> ParseLoot(IEnumerable<string> loots)
-        {
-            return loots
-                .Select(name => Getters.ParseItem(name))
-                .ToList();
-        }
-
         private Action ParseAction(string text)
         {
             var action = text.Split('/');
@@ -81,7 +47,7 @@ namespace Lost_boy.Event
                 case "ChangeArmor": return () => EventResult_ChangeArmor(int.Parse(action[1]));
                 case "ReceiveGold": return () => EventResult_ReceiveGold(int.Parse(action[1]));
                 case "HealthChange": return () => EventResult_HealthChange(int.Parse(action[1]));
-                case "ReceiveLoot": return () => EventResult_ReceiveLoot(ParseLoot(action.Skip(1)));
+                case "ReceiveLoot": return () => EventResult_ReceiveLoot(Getters.ParseLoot(action.Skip(1)));
             }
             return null;
         }

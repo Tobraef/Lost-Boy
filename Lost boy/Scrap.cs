@@ -60,7 +60,7 @@ namespace Lost_boy
 
         public Scrap(ScrapType type) :
             this(new Vector(), type)
-        {}
+        { }
 
         public Scrap(Vector position, ScrapType type) :
             base(
@@ -101,7 +101,7 @@ namespace Lost_boy
             get { return Direction.Down; }
         }
 
-        
+
         public void AffectShip(IShip ship)
         {
             onHits(ship);

@@ -11,6 +11,7 @@ namespace Lost_boy
     public class ClassicLevel : ILevel
     {
         public event Action<bool> Finished;
+        private List<EnemyShip> enemyShips = new List<EnemyShip>();
         private List<EnemyShip> toRemoveEnemies = new List<EnemyShip>();
         private List<IProjectile> enemyProjectiles = new List<IProjectile>();
         private List<IProjectile> playersProjectiles = new List<IProjectile>();
@@ -21,12 +22,6 @@ namespace Lost_boy
         private List<IProjectile> toRemoveEnemyProjectiles = new List<IProjectile>();
 
         public PlayerShip Player
-        {
-            set;
-            private get;
-        }
-
-        public List<EnemyShip> Enemies
         {
             set;
             private get;
@@ -46,7 +41,7 @@ namespace Lost_boy
                 case Difficulty.Normal:
                     break;
                 case Difficulty.Easy:
-                    foreach (var enemy in Enemies)
+                    foreach (var enemy in enemyShips)
                     {
                         enemy.Defence /= 2;
                         enemy.MaxHealth *= 3;
@@ -59,7 +54,7 @@ namespace Lost_boy
                     }
                     break;
                 case Difficulty.Hard:
-                    foreach (var enemy in Enemies)
+                    foreach (var enemy in enemyShips)
                     {
                         enemy.MaxHealth *= 3;
                         enemy.MaxHealth /= 2;
@@ -102,7 +97,7 @@ namespace Lost_boy
 
         public void SetDroppables(Dictionary<IBonus, int> set)
         {
-            foreach (var enemy in Enemies)
+            foreach (var enemy in enemyShips)
             {
                 foreach (var bonus in set)
                 {
@@ -123,7 +118,7 @@ namespace Lost_boy
 
         private void HandleEnemies_elapse()
         {
-            foreach (var enemy in Enemies)
+            foreach (var enemy in enemyShips)
             {
                 enemy.Move();
                 enemy.Shoot();
@@ -179,7 +174,7 @@ namespace Lost_boy
         {
             foreach (var enemy in toRemoveEnemies)
             {
-                Enemies.Remove(enemy);
+                enemyShips.Remove(enemy);
             }
             toRemoveEnemies.Clear();
 
@@ -198,11 +193,11 @@ namespace Lost_boy
         {
             if (Player.Health < 1)
                 Finished(false);
-            if (Enemies.Count + enemyProjectiles.Count == 0)
+            if (enemyShips.Count + enemyProjectiles.Count == 0)
                 Finished(true);
         }
 
-        public void Elapse()
+        public virtual void Elapse()
         {
             HandleEnemies_elapse();
             HandlePlayerProjectiles_elapse();
@@ -213,13 +208,13 @@ namespace Lost_boy
 
         private void DefaultStrategyForEnemies()
         {
-            foreach (var e in Enemies)
+            foreach (var e in enemyShips)
                 e.SetDefaultMoveStrategy();
         }
 
         private void RandomEnemyFalldown()
         {
-            Enemies
+            enemyShips
                 .Where(s => !(s.MovementStrategy is LevelInitialStrategy))
                 .ToList()
                 .ForEach(s =>
@@ -231,7 +226,6 @@ namespace Lost_boy
 
         public void Begin()
         {
-            SetEnemies();
             Player.Weapon.BulletAdder = PlayerBulletAdder;
             Player.Weapon.RecycledBulletAdder = PlayerRecycledBulletAdder;
             new Thread(() =>
@@ -243,7 +237,7 @@ namespace Lost_boy
 
         public void Draw(Graphics g, Pen p)
         {
-            foreach (var e in Enemies)
+            foreach (var e in enemyShips)
                 e.Draw(g, p);
             foreach (var b in enemyProjectiles)
                 b.Draw(g, p);
@@ -277,14 +271,12 @@ namespace Lost_boy
         public void HandlePlayer_Mouse(System.Windows.Forms.MouseEventArgs where)
         { }
 
-        private void SetEnemies()
+        public void AppendEnemy(EnemyShip e)
         {
-            foreach (var e in Enemies)
-            {
-                e.Weapon.BulletAdder = EnemyBulletAdder;
-                e.Weapon.RecycledBulletAdder = EnemyRecycledBulletAdder;
-                e.onDeath += () => toRemoveEnemies.Add(e);
-            }
+            e.Weapon.BulletAdder = EnemyBulletAdder;
+            e.Weapon.RecycledBulletAdder = EnemyRecycledBulletAdder;
+            e.onDeath += () => toRemoveEnemies.Add(e);
+            enemyShips.Add(e);
         }
 
         private void Cleanup()

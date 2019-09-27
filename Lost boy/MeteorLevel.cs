@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace Lost_boy.Meteor
 {
-    public class MeteorLevel : ILevel
+    public class MeteorLevel : IPlayAble
     {
         private MeteorDispenser dispenser = new MeteorDispenser(0);
         private bool waveTime = true;
