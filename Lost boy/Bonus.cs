@@ -26,7 +26,7 @@ namespace Lost_boy
             onDeath();
         }
 
-        public int Price
+        public virtual int Price
         {
             get { return 20; }
         }
@@ -278,7 +278,7 @@ namespace Lost_boy
             base(position,
                 ship =>
                 {
-                    ship.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(5));
+                    ship.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(1));
                 })
         { }
     }
@@ -300,6 +300,53 @@ namespace Lost_boy
                 ship =>
                 {
                     ship.Defence += 2;
+                })
+        { }
+    }
+
+    public class HealthIncrease : Bonus
+    {
+        public override IBonus Clone(Vector position)
+        {
+            return new HealthIncrease(position);
+        }
+
+        public override string ToString()
+        {
+            return "Health increase";
+        }
+
+        public HealthIncrease(Vector position) :
+            base(position,
+                ship =>
+                {
+                    ship.MaxHealth += 10;
+                })
+        { }
+    }
+
+    public class FuelBonus : Bonus
+    {
+        public override IBonus Clone(Vector position)
+        {
+            return new FuelBonus(position);
+        }
+
+        public override string ToString()
+        {
+            return "Fuel";
+        }
+
+        public override int Price
+        {
+            get { return 50; }
+        }
+
+        public FuelBonus(Vector position) :
+            base(position,
+                ship =>
+                {
+                    ((PlayerShip)ship).Fuel += 1;
                 })
         { }
     }

@@ -331,6 +331,7 @@ namespace Lost_boy
         {
             for (int i = 0; i < 3; ++i)
                 items.Scraps.Add((Bonus)bonuses[VALUES.random.Next(0, bonuses.Count)].Clone(new Vector()), 3);
+            items.Scraps.Add(new FuelBonus(new Vector()), 3);
         }
 
         private void AddScraps(ShopItems items, Tier tier)
@@ -354,48 +355,12 @@ namespace Lost_boy
             items.Scraps.Add(new Scrap(ScrapType.Plutonium), times[3]);
         }
 
-        private IEquipable GetAmmo(Tier tier)
-        {
-            int choice = VALUES.random.Next(4);
-            switch (tier)
-            {
-                case Tier.T1:
-                    switch (choice)
-                    {
-                        case 0: return new BulletFactory.T1.PlasmaFactory(Direction.Up);
-                        case 1: return new BulletFactory.T1.FrostyLaserFactory(Direction.Up);
-                        case 2: return new BulletFactory.T1.ExplosiveBulletFactory(Direction.Up);
-                        case 3: return new BulletFactory.T1.BeamFactory(Direction.Up);
-                    }
-                    break;
-                case Tier.T2:
-                    switch (choice)
-                    {
-                        case 0: return new BulletFactory.T2.HellHotFactory(Direction.Up);
-                        case 1: return new BulletFactory.T2.MortalCoilFactory(Direction.Up);
-                        case 2: return new BulletFactory.T2.NapalmFactory(Direction.Up);
-                        case 3: return new BulletFactory.T2.StarPlasmaFactory(Direction.Up);
-                    }
-                    break;
-                case Tier.T3:
-                    switch (choice)
-                    {
-                        case 0: return new BulletFactory.T3.AnnihilatorFactory(Direction.Up);
-                        case 1: return new BulletFactory.T3.ArmaggedonFactory(Direction.Up);
-                        case 2: return new BulletFactory.T3.DecimatorFactory(Direction.Up);
-                        case 3: return new BulletFactory.T3.DisintegratorFactory(Direction.Up);
-                    }
-                    break;
-            }
-            return null;
-        }
-
         private ShopItems GetRandomStuff(Tier tier)
         {
             ShopItems items = new ShopItems();
             AddBonuses(items, Getters.GetDrop(tier).Keys.ToList());
             AddScraps(items, tier);
-            items.Backpack.Add(GetAmmo(tier));
+            items.Backpack.Add(Getters.GetRandomAmmo(tier));
             return items;
         }
 

@@ -17,6 +17,13 @@ namespace Lost_boy.Enemies
             private int bulletCount;
             private readonly int speedDiff = 8;
 
+            public void ShootHealth(Vector where)
+            {
+                var b = new HealthBonus(where);
+                b.onDeath += b.Recycle;
+                BulletAdder(b);
+            }
+
             private void EvenBulletFormation(List<IBullet> bullets)
             {
                 int furthest = -bulletCount / 2;
@@ -65,7 +72,7 @@ namespace Lost_boy.Enemies
             }
 
             public SplitterWeapon(Tier tier) :
-                base(new BulletFactory.T2.HellHotFactory(Direction.Down))
+                base(new BulletFactory.T1.BasicLaserFactory(Direction.Down))
             {
                 this.ReloadTime = 1500;
                 this.bulletCount = 4 + (int)tier * 1;
@@ -135,6 +142,11 @@ namespace Lost_boy.Enemies
             Weapon = new SplitterWeapon((SplitterWeapon)parent.Weapon);
             drawable = new Rectangle(Position.X, Position.Y, Size.X, Size.Y);
             ShipAdder = parent.ShipAdder;
+            if (split == 1)
+                onDeath += () =>
+                {
+                    ((SplitterWeapon)Weapon).ShootHealth(Position);
+                };
             if (split > 0)
                 onDeath += () =>
                 {
@@ -158,14 +170,14 @@ namespace Lost_boy.Enemies
             {
                 case Tier.T1:
                     MaxHealth = 200;
-                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(-20));
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(-10));
                     this.Weapon.Ammo.AppendOnHit(new OnHits.SlowEffect(1));
                     split = 2;
                     break;
                 case Tier.T2:
                     MaxHealth = 300;
                     this.Weapon.AppendOnShot(new OnShots.SizeChange(3));
-                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(-20));
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(-10));
                     this.Weapon.Ammo.AppendDmgModifier((ref int val) =>
                     {
                         val += 5;
@@ -176,7 +188,7 @@ namespace Lost_boy.Enemies
                 case Tier.T3:
                     MaxHealth = 400;
                     this.Weapon.AppendOnShot(new OnShots.SizeChange(5));
-                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(-20));
+                    this.Weapon.AppendOnShot(new OnShots.SpeedChange(-10));
                     this.Weapon.Ammo.AppendDmgModifier((ref int val) =>
                     {
                         val += 8;

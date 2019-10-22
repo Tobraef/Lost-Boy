@@ -81,12 +81,15 @@ namespace Lost_boy
 
         private LevelType TypeRandomizer()
         {
-            switch (VALUES.random.Next(7))
+            switch (VALUES.random.Next(12))
             {
                 case 1: return LevelType.Meteor;
-                case 2: return LevelType.Event;
-                case 3: return LevelType.Shop;
-                case 4: return LevelType.Boss;
+                case 2: return LevelType.Meteor;
+                case 3: return LevelType.Event;
+                case 4: return LevelType.Event;
+                case 5: return LevelType.Shop;
+                case 6: return LevelType.Shop;
+                case 7: return LevelType.Boss;
                 default:
                     return LevelType.Classic;
             }
@@ -164,6 +167,7 @@ namespace Lost_boy
             public int Y { get; set; }
         }
         private Label label = null;
+        private Label fuelLabel;
 
         public void Begin()
         {
@@ -183,6 +187,7 @@ namespace Lost_boy
             if (label != null)
                 g.DrawString(label.Text, VALUES.FONT, p.Brush, label.X, label.Y);
             g.DrawString(instructions, VALUES.FONT, p.Brush, 0, 0);
+            g.DrawString(fuelLabel.Text, VALUES.FONT, p.Brush, fuelLabel.X, fuelLabel.Y);
 
             p.Color = Color.Red;
             g.DrawRectangle(p, playerStar.Value.MiddlePoint.X - 20, playerStar.Value.MiddlePoint.Y - 20, 40, 40);
@@ -228,7 +233,7 @@ namespace Lost_boy
 
         public void HandlePlayer(char key)
         {
-            if (key == ' ' && playerStar.Value.isValid)
+            if ((key == ' ' && playerStar.Value.isValid) || Form1.player.Fuel == 0)
                 Finished(true);
             else if (key == 'c')
             {
@@ -253,15 +258,19 @@ namespace Lost_boy
 
         public void HandlePlayerTravel(Vector where)
         {
+            if (Form1.player.Fuel == 0)
+                return;
             try
             {
                 KeyValuePair<int, Star> pressed = starMap.First(pair =>
                 {
                     return pair.Value.IsPressed(where);
                 });
-                if (pressed.Value.MiddlePoint.DistanceFrom(playerStar.Value.MiddlePoint) < playerReach)
+                if (playerStar.Key != pressed.Key &&
+                    pressed.Value.MiddlePoint.DistanceFrom(playerStar.Value.MiddlePoint) < playerReach)
                 {
                     playerStar = pressed;
+                    UpdateFuel();
                 }
             }
             catch (Exception e) { label = null; }
@@ -361,6 +370,8 @@ namespace Lost_boy
 
         private Setup.LevelInfoHolder FinishStarMap()
         {
+            if (!playerStar.Value.isValid)
+                return null;
             return new Setup.LevelInfoHolder
             {
                 id = playerStar.Key,
@@ -423,8 +434,20 @@ namespace Lost_boy
             throw new NotImplementedException("StarMap - Parse level type error");
         }
 
+        private void UpdateFuel()
+        {
+            Form1.player.Fuel--;
+            fuelLabel = new Label
+            {
+                X = 0,
+                Y = 60,
+                Text = "Fuel: " + Form1.player.Fuel
+            };
+        }
+
         public StarMap(int playerPosition, string file, List<int> emptied, Action<Setup.LevelInfoHolder> finisher)
         {
+            UpdateFuel();
             int id = 0;
             Finished += b =>
             {

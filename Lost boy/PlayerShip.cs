@@ -83,6 +83,12 @@ namespace Lost_boy
             }
         }
 
+        public int Fuel
+        {
+            get;
+            set;
+        }
+
         public void TakeDamage(int val)
         {
             onDamageTaken(ref val);

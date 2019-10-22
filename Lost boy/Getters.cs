@@ -28,7 +28,6 @@ namespace Lost_boy
                     }
                 case Tier.T2:
                     {
-
                         Dictionary<Scrap, int> drop = new Dictionary<Scrap, int>();
                         drop.Add(new Scrap(ScrapType.Carbon), 60);
                         drop.Add(new Scrap(ScrapType.Steel), 80);
@@ -61,6 +60,8 @@ namespace Lost_boy
                         drop.Add(new HealthBonus(new Vector()), 15);
                         drop.Add(new LaserDamageBonus(new Vector()), 5);
                         drop.Add(new ShipSpeedBonus(new Vector()), 5);
+                        drop.Add(new ArmorBonus(new Vector()), 5);
+                        drop.Add(new HealthIncrease(new Vector()), 5);
                         return drop;
                     }
                 case Tier.T2:
@@ -75,6 +76,8 @@ namespace Lost_boy
                         drop.Add(new ShipSpeedBonus(new Vector()), 10);
                         drop.Add(new ArmorMeltBonus(new Vector()), 5);
                         drop.Add(new FrostBonus(new Vector()), 5);
+                        drop.Add(new ArmorBonus(new Vector()), 10);
+                        drop.Add(new HealthIncrease(new Vector()), 10);
                         return drop;
                     }
                 case Tier.T3:
@@ -89,6 +92,8 @@ namespace Lost_boy
                         drop.Add(new ShipSpeedBonus(new Vector()), 10);
                         drop.Add(new ArmorMeltBonus(new Vector()), 10);
                         drop.Add(new FrostBonus(new Vector()), 10);
+                        drop.Add(new ArmorBonus(new Vector()), 15);
+                        drop.Add(new HealthIncrease(new Vector()), 15);
                         return drop;
                     }
             }
@@ -107,12 +112,12 @@ namespace Lost_boy
             throw new NotImplementedException("No Ammo");
         }
 
-        public static IItem GetRandomAmmo(Tier tier)
+        public static IEquipable GetRandomAmmo(Tier tier)
         {
             return ParseItem(RandomAmmo() + tier.ToString()[1]);
         }
 
-        public static IItem ParseItem(string text)
+        public static IEquipable ParseItem(string text)
         {
             switch (text)
             {
@@ -120,6 +125,9 @@ namespace Lost_boy
                 case "DWeapon": return new Weapon.T2.DoubleWeapon(null);
                 case "TWeapon": return new Weapon.T3.TripleWeapon(null);
 
+                case "Random1": return GetRandomAmmo(Tier.T1);
+                case "Random2": return GetRandomAmmo(Tier.T2);
+                case "Random3": return GetRandomAmmo(Tier.T3);
                 case "Laser1": return new BulletFactory.T1.FrostyLaserFactory(Direction.Up);
                 //case "Laser2": return new BulletFactory.T2.HellHotFactory(Direction.Up);
                 case "Laser2": return new BulletFactory.T2.IcyLaserFactory(Direction.Up);
@@ -137,7 +145,7 @@ namespace Lost_boy
             throw new NotImplementedException("Error parsing item name, received " + text);
         }
 
-        public static List<IItem> ParseLoot(IEnumerable<string> loots)
+        public static List<IEquipable> ParseLoot(IEnumerable<string> loots)
         {
             return loots
                 .Select(name => Getters.ParseItem(name))

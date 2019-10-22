@@ -92,6 +92,8 @@ namespace Lost_boy
         {
             currentMouseHandler = DefaultMouseHandler;
             currentDraw = DefaultDraw;
+            playerItemsView = new EquipmentView();
+            playerItemsView.SetForAllItems(Form1.player, 100);
         }
 
         private void PrepareSecondView()

@@ -18,6 +18,7 @@ namespace Lost_boy
         Setup.LevelSetup setup;
         private int playerStar = 1;
         private readonly List<int> emptyStars = new List<int>();
+        private Tier currentPlayerTier = Tier.T1;
 
         private readonly string STAR_MAP_FILE = System.IO.Directory.GetCurrentDirectory() + @"\StarMapFile.txt";
 
@@ -144,10 +145,21 @@ namespace Lost_boy
             level = builder.Build();
         }
 
+        private void SetTierFinishLevel(Setup.LevelInfoHolder info, ILevelBuilder builder)
+        {
+            builder
+                .SetPlayer(player)
+                .SetDescription("Tier finish level")
+                .SetFinishedAction(TierFinishedAction)
+                .SetContent(info);
+            level = builder.Build();
+        }
+
         private void InitializePlayer()
         {
             player = new PlayerShip();
             player.Gold = 250;
+            player.Fuel = 15;
             player.Weapon = new Weapon.T2.DoubleWeapon(new BulletFactory.T2.MortalCoilFactory(Direction.Up));
         }
 
@@ -168,6 +180,12 @@ namespace Lost_boy
 
         private void PrepareNextLevel(Setup.LevelInfoHolder info)
         {
+            //player stuck
+            if (info == null)
+            {
+                FinishTierLevel();
+                return;
+            }
             playerStar = info.id;
             LoadNextLevel(info);
         }
@@ -207,11 +225,41 @@ namespace Lost_boy
             level.Begin();
         }
 
+        private void FinishTierLevel()
+        {
+            ILevelBuilder builder = new BossLevelBuilder();
+            SetTierFinishLevel(new Setup.LevelInfoHolder { tier = currentPlayerTier, type = LevelType.Boss }, builder);
+            level.Begin();
+        }
+
+        private void TierFinishedAction(bool playerWon)
+        {
+            if (playerWon)
+            {
+                if (currentPlayerTier == Tier.T3)
+                    throw new NotImplementedException("You won");
+                currentPlayerTier = (Tier)((int)currentPlayerTier + 1);
+                player.Fuel = 15;
+                StarMap.GenerateRandomMap(STAR_MAP_FILE, 150, currentPlayerTier);
+                level = new StarMap(playerStar, STAR_MAP_FILE, new List<int> { }, PrepareNextLevel);
+                level.Begin();
+            }
+            else
+                throw new NotImplementedException("You lose");
+        }
+
         private void LevelFinishedAction(bool playerWon)
         {
             if (playerWon)
             {
-                ActivateStarMap();
+                if (player.Fuel == 0)
+                {
+                    FinishTierLevel();
+                }
+                else
+                {
+                    ActivateStarMap();
+                }
             }
             else
             {
@@ -232,7 +280,7 @@ namespace Lost_boy
             }
             InitializePlayer();
             // LoadNextLevel();
-            StarMap.GenerateRandomMap(STAR_MAP_FILE, 150, Tier.T1);
+            StarMap.GenerateRandomMap(STAR_MAP_FILE, 150, currentPlayerTier);
             level = new StarMap(playerStar, STAR_MAP_FILE, new List<int> { }, PrepareNextLevel);
             level.Begin();
             PLAY();

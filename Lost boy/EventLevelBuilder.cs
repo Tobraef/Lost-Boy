@@ -21,7 +21,7 @@ namespace Lost_boy.Event
                 player.Heal(value);
         }
 
-        private static void EventResult_ReceiveLoot(List<IItem> items)
+        private static void EventResult_ReceiveLoot(List<IEquipable> items)
         {
             foreach (var item in items)
             {

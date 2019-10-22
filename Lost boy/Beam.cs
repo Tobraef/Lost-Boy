@@ -14,7 +14,7 @@ namespace Lost_boy.Ammo
             public override event Action onDeath;
             private Vector size;
             private Rectangle drawable;
-            private int lifeSpan = 2;
+            private int lifeSpan = 1;
 
             public override void Move()
             {
