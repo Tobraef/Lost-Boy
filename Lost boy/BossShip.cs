@@ -203,7 +203,6 @@ namespace Lost_boy.Enemies
                 ShipAdder(new Splitter(this, split));
             };
             this.Health = MaxHealth;
-            SetDefaultMoveStrategy();
         }
     }
 }

@@ -279,8 +279,11 @@ namespace Lost_boy.Weapon
                     middleBullet = (IBullet)recycledShots[recycledShots.Count - 2];
                     rightBullet = (IBullet)recycledShots[recycledShots.Count - 3];
                     launchPosition.Y += leftBullet.Size.Y * (int)leftBullet.Direction;
+                    launchPosition.X -= leftBullet.Size.X;
                     leftBullet.Position = launchPosition;
+                    launchPosition.X += leftBullet.Size.X;
                     middleBullet.Position = launchPosition;
+                    launchPosition.X += leftBullet.Size.X;
                     rightBullet.Position = launchPosition;
                     recycledShots.RemoveRange(recycledShots.Count - 3, 3);
                     leftBullet.Speed = new Vector(-5, leftBullet.Speed.Y);
@@ -293,9 +296,12 @@ namespace Lost_boy.Weapon
                 else
                 {
                     leftBullet = Ammo.Create(launchPosition);
+                    launchPosition.X -= leftBullet.Size.X;
                     launchPosition.Y += leftBullet.Size.Y * (int)leftBullet.Direction;
                     leftBullet.Position = launchPosition;
+                    launchPosition.X += leftBullet.Size.X;
                     middleBullet = Ammo.Create(launchPosition);
+                    launchPosition.X += leftBullet.Size.X;
                     rightBullet = Ammo.Create(launchPosition);
                     leftBullet.Speed = new Vector(-5, leftBullet.Speed.Y);
                     rightBullet.Speed = new Vector(5, rightBullet.Speed.Y);

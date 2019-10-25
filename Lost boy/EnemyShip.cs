@@ -90,7 +90,7 @@ namespace Lost_boy.Enemies
             }
         }
 
-        public void TakeDamage(int val)
+        public virtual void TakeDamage(int val)
         {
             onDamageTaken(ref val);
             if (val < 1)
@@ -113,7 +113,7 @@ namespace Lost_boy.Enemies
 
         public virtual void Shoot()
         {
-            if (shootingRandomizer.Next(1000) < ShootingChance)
+            if (shootingRandomizer.Next(100) < ShootingChance)
                 Weapon.PullTheTrigger(ShootingPosition);
         }
 

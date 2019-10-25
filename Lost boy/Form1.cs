@@ -127,12 +127,8 @@ namespace Lost_boy
         {
             var g = e.Graphics;
             Pen p = new Pen(Color.Black);
-            if (setup == null)
-                level.Draw(g, p);
-            else
-            {
-                setup.Draw(g, p);
-            }
+            level.Draw(g, p);
+            //setup.Draw(g, p);
         }
 
         private void SetLevel(Setup.LevelInfoHolder info, ILevelBuilder builder)
@@ -269,6 +265,9 @@ namespace Lost_boy
 
         public Form1()
         {
+            SetStyle(ControlStyles.OptimizedDoubleBuffer |
+                ControlStyles.AllPaintingInWmPaint |
+                ControlStyles.UserPaint, true);
             InitializeComponent();
             this.BackColor = Color.Black;
             this.Size = new Size(VALUES.WIDTH, VALUES.HEIGHT + VALUES.PLAYER_HEIGHT);
@@ -279,7 +278,6 @@ namespace Lost_boy
                 this.KeyDown += SetupKeyHandle;
             }
             InitializePlayer();
-            // LoadNextLevel();
             StarMap.GenerateRandomMap(STAR_MAP_FILE, 150, currentPlayerTier);
             level = new StarMap(playerStar, STAR_MAP_FILE, new List<int> { }, PrepareNextLevel);
             level.Begin();

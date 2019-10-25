@@ -8,10 +8,7 @@ using System.Windows.Forms;
 
 /*TODOS
  * NEW FEATURES
- * implement boss
- * implement enemy that appears randomly, drops lots of stuff, disappears after specified time
  * implement graphics
- * implement events
  * 
  * REFACTOR
  * falling strategy -> infinite timer
@@ -22,6 +19,7 @@ using System.Windows.Forms;
  * clear interfaces, not to expose unnecessary stuff
  * implement secondary weapon
  * synchronous draw with logic
+ * juggernaut -> hitting wings can remove them and their weapons
  * new level types / weapons / ammo - basically always open for new ideas
 */
 
@@ -130,6 +128,10 @@ namespace Lost_boy
 
         public const int MAX_CLASSIC_LVL_ID = 3;
         public const int MAX_EVENT_LVL_ID = 1;
+
+        public const int CORE_OFFSET_Y = 10;
+        public const int CORE_OFFSET_X = 60;
+        public const int WING_OFFSET_X = 90;
     }
 
     public interface IMover
@@ -249,7 +251,7 @@ namespace Lost_boy
         }
     }
 
-    public interface IWeapon : IItem
+    public interface IWeapon
     {
         void SuckOnShots(IWeapon other);
         void Cleanup();

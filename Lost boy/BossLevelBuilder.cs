@@ -23,9 +23,11 @@ namespace Lost_boy
 
         private Enemies.EnemyShip GetRandomBoss(Tier tier)
         {
-            switch (VALUES.random.Next(1))
+            switch (VALUES.random.Next(2))
             {
-                case 0: return new Enemies.Splitter(tier, level.ShipAdder);
+                //case 0: return new Enemies.Splitter(tier, level.ShipAdder);
+                case 0: return new Enemies.Juggernaut(tier);
+                case 1: return new Enemies.Juggernaut(tier);
             }
             throw new NotImplementedException("No more bosses");
         }
@@ -38,7 +40,9 @@ namespace Lost_boy
         public ILevelBuilder SetContent(LevelInfoHolder info)
         {
             Tier t = info.tier;
-            level.AppendEnemy(GetRandomBoss(t));
+            var boss = GetRandomBoss(t);
+            boss.SetDefaultMoveStrategy();
+            level.AppendEnemy(boss);
             level.Finished += b => { if (b) RewardPlayer(t); };
             return this;
         }

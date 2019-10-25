@@ -65,6 +65,7 @@ namespace Lost_boy.Ammo
                 0,
                 30)
             {
+                this.Color = Color.Beige;
                 this.direction = dir;
                 this.OnRecycle += t => lifeSpan = 2;
                 this.drawable = new Rectangle

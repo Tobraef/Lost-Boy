@@ -206,21 +206,13 @@ namespace Lost_boy
             CheckConditions_elapse();
         }
 
-        private void DefaultStrategyForEnemies()
-        {
-            foreach (var e in enemyShips)
-                e.SetDefaultMoveStrategy();
-        }
-
         private void RandomEnemyFalldown()
         {
             enemyShips
-                .Where(s => !(s.MovementStrategy is LevelInitialStrategy))
-                .ToList()
                 .ForEach(s =>
                 {
-                    if (VALUES.random.Next(100) < 30)
-                        s.MovementStrategy = new FallDownStrategy();
+                    if (VALUES.random.Next(100) < 50)
+                        s.MovementStrategy = new FallDownStrategy(s.MaxSpeed);
                 });
         }
 
@@ -230,8 +222,8 @@ namespace Lost_boy
             Player.Weapon.RecycledBulletAdder = PlayerRecycledBulletAdder;
             new Thread(() =>
             {
-                Thread.Sleep(20000);
-                DefaultStrategyForEnemies();
+                Thread.Sleep(60000);
+                RandomEnemyFalldown();
             }).Start();
         }
 

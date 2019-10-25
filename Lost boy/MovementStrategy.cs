@@ -9,48 +9,53 @@ namespace Lost_boy
     using Enemies;
     public class FallDownStrategy : IMovementStrategy
     {
-        private int circulationPointX;
-        private const int circulatingAccelarationX = 1;
-        Timer timer;
-        public FallDownStrategy()
+        private int moveCount;
+        private int withSpeed;
+
+        private Vector NewRandomTeleportPosition(IShip ship)
         {
-            timer = new Timer(5000);
-            timer.Elapsed += (o, args) =>
-            {
-                circulationPointX = VALUES.random.Next(VALUES.WIDTH);
-            };
-            timer.Start();
+            return new Vector(
+                VALUES.random.Next(0, VALUES.WIDTH - ship.Size.X),
+                -ship.Size.Y * 2);
+        }
+
+        private void ResetFalldown(EnemyShip ship)
+        {
+            var position = NewRandomTeleportPosition(ship);
+            ship.Teleport(position.X, position.Y);
+            int xSpeed = VALUES.random.Next(-withSpeed, withSpeed);
+            moveCount = VALUES.HEIGHT / withSpeed;
+            ship.Speed = new Vector(xSpeed, withSpeed);
+        }
+
+        public FallDownStrategy(int fallingSpeed)
+        {
+            withSpeed = fallingSpeed;
         }
 
         public void ApplyStrategy(IShip ship)
         {
-            EnemyShip enemy = (EnemyShip)ship;
-            if (enemy.Position.Y > VALUES.HEIGHT)
-                enemy.Teleport(enemy.Position.X, -enemy.Size.Y);
-
-            if (enemy.Position.X < -enemy.Size.X - 10)
-                enemy.Teleport(VALUES.WIDTH, enemy.Position.Y);
-            else if (enemy.Position.X > VALUES.WIDTH + enemy.Size.X + 10)
-                enemy.Teleport(0, enemy.Position.Y);
-
-            if (ship.Position.X > circulationPointX)
-                ship.Acceleration = new Vector(circulatingAccelarationX, 0);
-            else
-                ship.Acceleration = new Vector(-circulatingAccelarationX, 0);
-            if (Math.Abs(ship.Speed.X) < ship.MaxSpeed)
-                ship.Speed = new Vector(ship.Speed.X, VALUES.ENEMY_FALLING_SPEED);
+            var e = ship as EnemyShip;
+            if (moveCount == 0)
+            {
+                ResetFalldown(e);
+            }
             else
             {
-                if (ship.Speed.X > 0)
-                    ship.Speed = new Vector(ship.MaxSpeed, VALUES.ENEMY_FALLING_SPEED);
-                else
-                    ship.Speed = new Vector(-ship.MaxSpeed, VALUES.ENEMY_FALLING_SPEED);
+                moveCount--;
+                if (ship.Position.X + ship.Size.X > VALUES.WIDTH)
+                {
+                    ship.Speed = new Vector(-ship.Speed.X, ship.Speed.Y);
+                }
+                else if (ship.Position.X < 0)
+                {
+                    ship.Speed = new Vector(-ship.Speed.X, ship.Speed.Y);
+                }
             }
         }
 
         public void StopStrategy(IShip ship)
         {
-            timer.Enabled = false;
             ship.Speed = new Vector();
         }
     }
@@ -135,7 +140,6 @@ namespace Lost_boy
         private int currentCount;
         private IEnumerator<KeyValuePair<Vector, int>> currentStep;
         private int delay;
-        private Action finishCallback;
 
         public void ApplyStrategy(IShip m)
         {
@@ -151,7 +155,7 @@ namespace Lost_boy
             }
             if (!currentStep.MoveNext())
             {
-                finishCallback();
+                ((EnemyShip)m).SetDefaultMoveStrategy();
             }
             else
             {
@@ -165,10 +169,8 @@ namespace Lost_boy
             currentStep = null;
         }
 
-        public LevelInitialStrategy(IEnumerator<KeyValuePair<Vector, int>> iter, int delay,
-            Action finishCallback)
+        public LevelInitialStrategy(IEnumerator<KeyValuePair<Vector, int>> iter, int delay)
         {
-            this.finishCallback = finishCallback;
             currentStep = iter;
             this.delay = delay;
         }
